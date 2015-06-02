@@ -26,22 +26,21 @@ If Side = -1 Then
 End If
 End Function
 
-
 Function GetAv(Line)
- For i = 1 To Len(Line) - 1
- If Mid(Line, i, 1) = "#" Then GetAv = Right(Line, Len(Line) - i)
- Next
+For i = 1 To Len(Line) - 1
+    If Mid(Line, i, 1) = "#" Then GetAv = Right(Line, Len(Line) - i)
+Next
 End Function
 Function GetDay(Line) As Integer
- For i = 1 To Len(Line) - 1
- If Mid(Line, i, 1) = "#" Then GetDay = CInt(Left(Line, i - 1))
- Next
+For i = 1 To Len(Line) - 1
+    If Mid(Line, i, 1) = "#" Then GetDay = CInt(Left(Line, i - 1))
+Next
 End Function
 
 Private Sub AvReport_Button_Click()
 On Error GoTo ExceptionControl:
 Windows(WorkersBase).Activate
- Sheets("АвансовыйОтчёт").Select
+ Sheets("РђРІР°РЅСЃРѕРІС‹Р№РћС‚С‡С‘С‚").Select
 Cells(2, 2) = DateTime.Date
 Cells(3, 2) = DateTime.TIME
 
@@ -50,11 +49,11 @@ Range("B7:AH200").Clear
 Range("C7:AG7").Select
 Selection.EntireColumn.Hidden = True
 
-Cells(1, 2).Value = "Авансовый отчёт за " & MName(CMonth)
+Cells(1, 2).Value = "РђРІР°РЅСЃРѕРІС‹Р№ РѕС‚С‡С‘С‚ Р·Р° " & MName(CMonth)
 
  Start = 0
  HiddenCount = 0
- Sheets("Сотрудники").Select
+ Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
     
     Range("B2:F100").Select
     Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
@@ -64,7 +63,7 @@ Cells(1, 2).Value = "Авансовый отчёт за " & MName(CMonth)
 WeHaveWorkers = Cells(1, 2).Value
 
 For i = 3 To WeHaveWorkers + 2
-Sheets("Сотрудники").Select
+Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
 If Cells(i, 4).Value = 1 Then HiddenCount = HiddenCount + 1
 If Cells(i, 4).Value = 0 Then
 ii = i - HiddenCount
@@ -78,7 +77,7 @@ AvRepColl.Clear
    End If
   Next j
 
- Sheets("АвансовыйОтчёт").Select
+ Sheets("РђРІР°РЅСЃРѕРІС‹Р№РћС‚С‡С‘С‚").Select
 RepOffset = 4 + ii
 Cells(RepOffset, 2).Value = Namess
 Cells(RepOffset, 34).FormulaR1C1 = "=SUM(RC[-31]:RC[-1])"
@@ -134,7 +133,7 @@ End If
 Next
 '  Columns("B:AH").EntireColumn.AutoFit
 
-If NoPrintAvReport_Chk.Value = True Then Sheets("АвансовыйОтчёт").PrintOut
+If NoPrintAvReport_Chk.Value = True Then Sheets("РђРІР°РЅСЃРѕРІС‹Р№РћС‚С‡С‘С‚").PrintOut
 If NoPrintAvReport_Chk.Value = False Then
      Form.Hide
      ReportExit = True
@@ -155,35 +154,35 @@ FiltersReady = 0
 
 Orders.CDay_Box.Clear
 Orders.Day_Filter.Clear
-Orders.Day_Filter.AddItem ("Все")
+Orders.Day_Filter.AddItem ("Р’СЃРµ")
 
   For i = 1 To MDays(CMonth)
    Orders.CDay_Box.AddItem (i)
    Orders.Day_Filter.AddItem (i)
   Next
 Orders.CDay_Box.Value = DateTime.Day(DateTime.Date)
-Orders.Day_Filter.Value = "Все"
+Orders.Day_Filter.Value = "Р’СЃРµ"
 
 Orders.Dol_Chooser.Clear
-Orders.Dol_Chooser.AddItem ("Все")
-Orders.Dol_Chooser.AddItem ("Долги")
-Orders.Dol_Chooser.Value = "Долги"
+Orders.Dol_Chooser.AddItem ("Р’СЃРµ")
+Orders.Dol_Chooser.AddItem ("Р”РѕР»РіРё")
+Orders.Dol_Chooser.Value = "Р”РѕР»РіРё"
 
 Orders.Opl_Chooser.Clear
-Orders.Opl_Chooser.AddItem ("Все")
-Orders.Opl_Chooser.AddItem ("нал")
-Orders.Opl_Chooser.AddItem ("б/н")
-Orders.Opl_Chooser.Value = "б/н"
+Orders.Opl_Chooser.AddItem ("Р’СЃРµ")
+Orders.Opl_Chooser.AddItem ("РЅР°Р»")
+Orders.Opl_Chooser.AddItem ("Р±/РЅ")
+Orders.Opl_Chooser.Value = "Р±/РЅ"
 
 Orders.Opl_Chooser_w.Clear
-Orders.Opl_Chooser_w.AddItem ("нал")
-Orders.Opl_Chooser_w.AddItem ("б/н")
-Orders.Opl_Chooser_w.Value = "б/н"
+Orders.Opl_Chooser_w.AddItem ("РЅР°Р»")
+Orders.Opl_Chooser_w.AddItem ("Р±/РЅ")
+Orders.Opl_Chooser_w.Value = "Р±/РЅ"
 
 Orders.RoundType.Clear
-Orders.RoundType.AddItem ("в большую сторону")
-Orders.RoundType.AddItem ("в меньшую сторону")
-Orders.RoundType.Value = "в большую сторону"
+Orders.RoundType.AddItem ("РІ Р±РѕР»СЊС€СѓСЋ СЃС‚РѕСЂРѕРЅСѓ")
+Orders.RoundType.AddItem ("РІ РјРµРЅСЊС€СѓСЋ СЃС‚РѕСЂРѕРЅСѓ")
+Orders.RoundType.Value = "РІ Р±РѕР»СЊС€СѓСЋ СЃС‚РѕСЂРѕРЅСѓ"
 
 
 
@@ -195,7 +194,7 @@ Orders.ScanOrgs (WorkersBase)
 Orders.ScanJobs
 Orders.ScanOCats
 FiltersReady = 1
-Orders.Region_Filter.Value = "Все"
+Orders.Region_Filter.Value = "Р’СЃРµ"
 
 Orders.OrgName_Box.Value = _
             Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Text
@@ -219,12 +218,12 @@ End Sub
 Private Sub GenerateNextMonth_Click()
 On Error GoTo ExceptionControl:
 If DateTime.Month(DateTime.Date) <> NMonth Then
-    b = MsgBox(NextMonth & " ещё не наступил (или уже прошёл :-D)", vbOKOnly, "Внимание")
+    b = MsgBox(NextMonth & " РµС‰С‘ РЅРµ РЅР°СЃС‚СѓРїРёР» (РёР»Рё СѓР¶Рµ РїСЂРѕС€С‘Р» :-D)", vbOKOnly, "Р’РЅРёРјР°РЅРёРµ")
     Exit Sub
 End If
 
 InsureForm.NoButton.SetFocus
-InsureForm.Msg_label.Caption = "После перехода на новый месяц будет невозможно " & SwitchToLastMonth.Caption & ". Продолжаем?"
+InsureForm.Msg_label.Caption = "РџРѕСЃР»Рµ РїРµСЂРµС…РѕРґР° РЅР° РЅРѕРІС‹Р№ РјРµСЃСЏС† Р±СѓРґРµС‚ РЅРµРІРѕР·РјРѕР¶РЅРѕ " & SwitchToLastMonth.Caption & ". РџСЂРѕРґРѕР»Р¶Р°РµРј?"
 InsureForm.Show
 If InsureForm.OK.Value = True Then
     SaveClose (WorkersBase)
@@ -241,7 +240,7 @@ If InsureForm.OK.Value = True Then
     ArcName = Path + "Archive\Valid\" & MNameEng(ArcMonth) & "_" & ArcYear
     ArcFiles = Path + "lWorkers.xls"
     
-    RunCommand ("C:\Program Files\7-zip\7z.exe a " & ArcKey & " " & ArcName & " " & ArcFiles)
+    RunCommand (Archiver & " a " & ArcKey & " " & ArcName & " " & ArcFiles)
      
     Destination = Path & "lWorkers.xls"
     Source = Path & WorkersBase
@@ -251,7 +250,7 @@ If InsureForm.OK.Value = True Then
 
     Windows(WorkersBase).Activate
  
-    Sheets("Каталог").Select
+    Sheets("РљР°С‚Р°Р»РѕРі").Select
     CYear = Cells(1, 3).Value
     CMonth = Cells(2, 3).Value
     Cells(2, 3).Value = Cells(2, 3).Value + 1
@@ -286,56 +285,13 @@ ErrorForm.Error_Box.Value = "Form/GenerateNextMonth_Click()"
 ErrorForm.Show
 End Sub
 
-Private Sub MakePull_Button_Click()
-SaveClose (WorkersBase)
-PullBase = "pull.xls"
-Destination = Path & PullBase
-Source = Path & WorkersBase
-FileCopy Source, Destination
-FormShow
-End Sub
-
-Private Sub DoPush_Button_Click()
-
-Windows(WorkersBase).Activate
-Sheets("Каталог").Select
-ReferenceTokens = Cells(2, 6).Value
-
-PushBase = "push.xls"
-Destination = Path & "tWorkers.xls"
-Source = Path & PushBase
-
-If Not IsOpened("push.xls") Then Workbooks.Open Filename:=Path + PushBase
-Windows(PushBase).Activate
-Sheets("Каталог").Select
-
-If (Cells(1, 6).Value = ReferenceTokens) Or (Cells(2, 6).Value = ReferenceTokens) Then
-    ActiveWorkbook.Close SaveChanges:=False
-    Windows(WorkersBase).Activate
-    ActiveWorkbook.Close SaveChanges:=False
-    FileCopy Source, Destination
-    Workbooks.Open Filename:=Path + WorkersBase
-    Windows(WorkersBase).Activate
-Else
-    ActiveWorkbook.Close
-    Windows(WorkersBase).Activate
-End If
-
-FormShow
-End Sub
-
-
-Private Sub PullData_Button_Click()
-If AppMode = "server" Then PullOnServer
-End Sub
-
 Sub DropSensitiveData()
 On Error GoTo ExceptionControl:
-    Sheets("АвансовыйОтчёт").Select
+    Sheets("РђРІР°РЅСЃРѕРІС‹Р№РћС‚С‡С‘С‚").Select
     Range("a7:bb684").ClearContents
-    Sheets("Отчёт").Select
+    Sheets("РћС‚С‡С‘С‚").Select
     Range("a7:bb684").ClearContents
-    Sheets("Каталог").Select
+    Sheets("РљР°С‚Р°Р»РѕРі").Select
 
 Exit Sub
 ExceptionControl:
@@ -346,7 +302,7 @@ End Sub
 
 Sub DoneForNow(ByVal CloseBase As Boolean)
 On Error GoTo ExceptionControl:
-If AppMode = "server" Then
+If AdminMode Then
     Windows(WorkersBase).Activate
     DropSensitiveData
     SaveClose (WorkersBase)
@@ -357,13 +313,15 @@ If AppMode = "server" Then
     FileCopy Source, Destination
 
     ArcName = Path & "push.7z"
-    ArcFiles = Path & PushBase
-    RunCommand ("C:\Program Files\7-zip\7z.exe a -sdel " & ExchangeKey & " " & ArcName & " " & ArcFiles)
+    ArcFiles = Path & PushBase & " " & Path & "index-c.xls"
+    RunCommand (Archiver & " a " & ExchangeKey & " " & ArcName & " " & ArcFiles)
+    RunCommand (Archiver & " rn " & ExchangeKey & " " & ArcName & " index-c.xls index.xls")
+    Kill Path & PushBase
     
     If CloseBase Then
         ArcName = Path + "Archive\LastState.7z"
         ArcFiles = Path + "*Workers.xls"
-        RunCommand ("C:\Program Files\7-zip\7z.exe a " & ArcKey & " " & ArcName & " " & ArcFiles)
+        RunCommand (Archiver & " a " & ArcKey & " " & ArcName & " " & ArcFiles)
         a = Shell("ftp -v -s:" & Path & "ftp_server_send_all " & FtpStorageName, vbMinimizedNoFocus)
     Else
         a = Shell("ftp -v -s:" & Path & "ftp_server_send " & FtpStorageName, vbMinimizedNoFocus)
@@ -375,6 +333,15 @@ ExceptionControl:
 ErrorForm.Error_Box.Value = "Form/DoneForNow()"
 ErrorForm.Show
 End Sub
+
+Private Sub RunTC_Button_Click()
+BlockIt.Pass = PinAdmin
+BlockIt.PassOK = False
+BlockIt.Password_Box.SetFocus
+BlockIt.Show
+If BlockIt.PassOK Then a = Shell("c:\Program Files\WINCMD\totalcmd.exe", vbMaximizedFocus)
+End Sub
+
 Private Sub SaveAndClose_Click()
 On Error GoTo ExceptionControl:
 DoneForNow (True)
@@ -396,22 +363,29 @@ End Sub
 
 Private Sub SwitchToLastMonth_Click()
 On Error Resume Next
-If IsOpened("lWorkers.xls") Then
-    If AppMode = "server" Then
+If LMMode Then
+    If AdminMode Then
         Windows(WorkersBase).Activate
         DropSensitiveData
         SaveClose ("lWorkers.xls")
-        ArcName = Path + "lm.7z"
-        ArcFiles = Path + "lWorkers.xls"
-        RunCommand ("C:\Program Files\7-zip\7z.exe a " & ExchangeKey & " " & ArcName & " " & ArcFiles)
+        ArcName = Path & "lm.7z"
+        ArcFiles = Path & "lWorkers.xls"
+        RunCommand (Archiver & " a " & ExchangeKey & " " & ArcName & " " & ArcFiles)
     Else
         Windows(WorkersBase).Activate
         ActiveWorkbook.Close SaveChanges:=False
+        Kill Path & WorkersBase
     End If
 Else
+    If Not AdminMode Then
+        ArcFiles = "lWorkers.xls"
+        ArcName = Path & "lm.7z"
+        RunCommand ("ftp -v -s:" & Path & "ftp_client_get_lm " & FtpStorageName)
+        RunCommand (Archiver & " e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
+        Kill ArcName
+    End If
     Workbooks.Open Filename:=Path & "lWorkers.xls"
 End If
-
 ReportExit = True
 FormShow
 End Sub
@@ -435,14 +409,14 @@ End If
 
 Workers.Label_FullDate.Caption = GetDayName(Workers.CDay_Box.Value) & ", " & _
                             Workers.CDay_Box.Value & " " & MNameRusFix(CMonth)
-Workers.IncomeLabel.Caption = "Заработано за " & MName(CMonth)
-Workers.OutComeLabel.Caption = "Выдано за " & MName(CMonth)
-Workers.LeftLabel.Caption = "Остаток за " & MName(LMonth)
+Workers.IncomeLabel.Caption = "Р—Р°СЂР°Р±РѕС‚Р°РЅРѕ Р·Р° " & MName(CMonth)
+Workers.OutComeLabel.Caption = "Р’С‹РґР°РЅРѕ Р·Р° " & MName(CMonth)
+Workers.LeftLabel.Caption = "РћСЃС‚Р°С‚РѕРє Р·Р° " & MName(LMonth)
 
 Workers.ScanWorkers
 Workers.ScanJobs
 
-If IsOpened("lWorkers.xls") Then
+If LMMode Then
     Workers.LastMonth_Label.Visible = True
     Workers.MakeReadOnly_Chk.Visible = False
 Else
@@ -457,14 +431,14 @@ ErrorForm.Show
 End Sub
 
 Private Sub Workers_Button_Click()
-'On Error GoTo ExceptionControl:
+On Error GoTo ExceptionControl:
 MainReInit
-If AppMode = "server" Then
+If AdminMode Then
         
     ArcFiles = "pull.xls"
     RunCommand ("ftp -v -s:" & Path & "ftp_server_get " & FtpStorageName)
     ArcName = Path + "pull.7z"
-    RunCommand ("C:\Program Files\7-zip\7z.exe e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
+    RunCommand (Archiver & " e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
     
     PullOnServer
 
@@ -478,25 +452,25 @@ If AppMode = "server" Then
             Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Key
     Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Selected = True
     Workers.WorkersTreeHolder.Visible = False
-    
+    Workers.Show
 Else
-    If Not IsOpened("lWorkers.xls") Then
+    If Not LMMode Then
         Windows(WorkersBase).Activate
-        Sheets("Каталог").Select
+        Sheets("РљР°С‚Р°Р»РѕРі").Select
         ReferenceTokens = Cells(2, 6).Value
 
-        ArcFiles = "push.xls"
+        ArcFiles = "push.xls index.xls"
         ArcName = Path & "push.7z"
         RunCommand ("ftp -v -s:" & Path & "ftp_client_get " & FtpStorageName)
-        RunCommand ("C:\Program Files\7-zip\7z.exe e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
-
+        RunCommand (Archiver & " e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
+        
         PushBase = "push.xls"
         Destination = Path & "tWorkers.xls"
         Source = Path & PushBase
 
         If Not IsOpened("push.xls") Then Workbooks.Open Filename:=Path + PushBase
         Windows(PushBase).Activate
-        Sheets("Каталог").Select
+        Sheets("РљР°С‚Р°Р»РѕРі").Select
 
         If (Cells(1, 6).Value = ReferenceTokens) Or (Cells(2, 6).Value = ReferenceTokens) Then
             ActiveWorkbook.Close SaveChanges:=False
@@ -511,17 +485,16 @@ Else
     End If
     InitWorkers
     Workers.MakeReadOnly_Chk.Visible = False
-    If IsOpened("lWorkers.xls") Then
+    If LMMode Then
         Workers.Apply_Button.Enabled = False
         Workers.Clear_Button.Enabled = False
         Workers.Delete_Button.Enabled = False
         Workers.ChooseMate_Button.Enabled = False
     End If
+    Workers.Show
 End If
 'If LastPerson <> "" Then Workers.NameChooser.Value = LastPerson Else _
 '                         Workers.NameChooser.Value = Workers.NameChooser.List(0)
-Workers.Show
-
 Exit Sub
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Form/Workers_Button_Click()"
@@ -533,18 +506,18 @@ End Sub
 Private Sub FeeReport_Button_Click()
 On Error GoTo ExceptionControl:
 Windows(WorkersBase).Activate
- Sheets("Отчёт").Select
+ Sheets("РћС‚С‡С‘С‚").Select
 
 Selection.Font.Bold = False
 Range("B7:G100").Clear
 
-Cells(1, 3).Value = "Отчёт по зарплате за  " & MName(CMonth)
-Cells(6, 3).Value = "Остаток за " & MName(LMonth)
-Cells(6, 5).Value = "Выдано за " & MName(CMonth)
+Cells(1, 3).Value = "РћС‚С‡С‘С‚ РїРѕ Р·Р°СЂРїР»Р°С‚Рµ Р·Р°  " & MName(CMonth)
+Cells(6, 3).Value = "РћСЃС‚Р°С‚РѕРє Р·Р° " & MName(LMonth)
+Cells(6, 5).Value = "Р’С‹РґР°РЅРѕ Р·Р° " & MName(CMonth)
 
  Start = 0
  HiddenCount = 0
- Sheets("Сотрудники").Select
+ Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
     
     Range("B2:F100").Select
     Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
@@ -554,22 +527,22 @@ Cells(6, 5).Value = "Выдано за " & MName(CMonth)
 WeHaveWorkers = Cells(1, 2).Value
 
 For i = 3 To WeHaveWorkers + 2
-Sheets("Сотрудники").Select
+Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
 If Cells(i, 4).Value = 1 Then HiddenCount = HiddenCount + 1
 If Cells(i, 4).Value = 0 Then
 ii = i - HiddenCount
 
 Sheets(Cells(i, 3).Value).Select
 
-If Cells(1, 1).Value <> "" Then LastDay = "(по " & Cells(1, 1).Value & "-e число)" _
-Else LastDay = "#нет данных#"
+If Cells(1, 1).Value <> "" Then LastDay = "(РїРѕ " & Cells(1, 1).Value & "-e С‡РёСЃР»Рѕ)" _
+Else LastDay = "#РЅРµС‚ РґР°РЅРЅС‹С…#"
 Leftt = Cells(2, 10).Value
 Income = Cells(3, 10).Value
 outcome = Cells(3, 11).Value
 Balance = Cells(1, 10).Value
 Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
 
- Sheets("Отчёт").Select
+ Sheets("РћС‚С‡С‘С‚").Select
 
 Cells(3, 4) = DateTime.Date
 Cells(3, 5) = DateTime.TIME
@@ -627,7 +600,7 @@ Start = Start + 1
 End If
 
 Next
-If NoPrintFeeReport_Chk.Value = True Then Sheets("Отчёт").PrintOut
+If NoPrintFeeReport_Chk.Value = True Then Sheets("РћС‚С‡С‘С‚").PrintOut
 If NoPrintFeeReport_Chk.Value = False Then
      Form.Hide
      ReportExit = True
@@ -674,10 +647,10 @@ ErrorForm.Show
 End Sub
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
 BlockIt.Pass = PinAdmin
-BlockIt.PassOK = 0
+BlockIt.PassOK = False
 BlockIt.Password_Box.SetFocus
 BlockIt.Show
-If BlockIt.PassOK = 0 And CloseMode = 0 Then Cancel = 1
+If BlockIt.PassOK = False And CloseMode = 0 Then Cancel = 1
 End Sub
 
 

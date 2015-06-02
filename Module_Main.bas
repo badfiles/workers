@@ -2,7 +2,7 @@ Attribute VB_Name = "Module_MAin"
 Public CYear, CMonth, LMonth, NMonth As Integer
 Public WorkersBase, Path, NextMonth As String
 Public AtLast As Boolean
-Public ReportExit, WorkersExit As Boolean
+Public ReportExit, WorkersExit, LMMode As Boolean
 Public LastWorkersDay As Integer
 Public FiltersReady As Integer
 Public LastPerson As String
@@ -10,14 +10,16 @@ Public LastPerson As String
 Public Const FtpStorageName = "10.10.11.1"
 
 Public Const PinAdmin = "17ED0255"
-'Public Const ExchangeKey = "-mhe -p576908y56vmjthnvhnvw9o4y6"
-'Public Const ArcKey = "-mhe -p6897yjbo7ytno4thvklfhg59b"
+'Public Const PinAdmin = "free"
+'Public Const ExchangeKey = "-mhe -pLLHNM8y56vmjthURFnvhnvw9o4y6"
+'Public Const ArcKey = "-mhe -pIUBNMyjbo7ytno4RYDthvklfhg59b"
+Public Const Archiver = "c:\Program Files\7-zip\7z.exe"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
+Public Const Version = "U-3.3.102"
 
-Public Const AppMode = "server"
-'Public Const AppMode = "client"
-
+Public Const AdminMode = True
+'Public Const AdminMode = False
 
 Declare Function GetSystemMetrics32 Lib "user32" Alias "GetSystemMetrics" (ByVal nIndex As Long) As Long
 Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
@@ -26,6 +28,7 @@ Public Sub OpenFile(ByVal Fil As String)
 On Error GoTo ExceptionControl:
 'SetCaption(Fil, 1) = 0
 Workbooks.Open Filename:=Fil
+
 Exit Sub
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/OpenFile()"
@@ -36,6 +39,7 @@ On Error GoTo ExceptionControl:
 Windows(Fil).Activate
 ActiveWorkbook.Save
 ActiveWorkbook.Close
+
 Exit Sub
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/SaveClose()"
@@ -46,6 +50,7 @@ Public Sub JustSave(ByVal Fil As String)
 On Error GoTo ExceptionControl:
 Windows(Fil).Activate
 ActiveWorkbook.Save
+
 Exit Sub
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/JustSave()"
@@ -82,6 +87,7 @@ For i = 9 To ActiveWorkbook.Sheets.Count
     Sheets(i).Select
     TokenSum = Cells(2, 1).Value + TokenSum
 Next
+
 Exit Function
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/TokenSum()"
@@ -113,6 +119,7 @@ Then
 Else
     PointFilter = Left(Val, String_Len - 1)
 End If
+
 Exit Function
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/PointFilter()"
@@ -121,14 +128,12 @@ End Function
 
 Public Sub TransferBalanceToNextMonth(ByVal Name, ByVal Balance)
 On Error GoTo ExceptionControl:
-If IsOpened("lWorkers.xls") Then
-    Windows("Workers.xls").Activate
-    If GetWorkerID(Name) <> 0 Then
-        Sheets(Name).Select
-        Cells(2, 10).Value = Balance
-    End If
-    Windows("lWorkers.xls").Activate
+Windows("Workers.xls").Activate
+If GetWorkerID(Name) <> 0 Then
+    Sheets(Name).Select
+    Cells(2, 10).Value = Balance
 End If
+Windows("lWorkers.xls").Activate
 
 Exit Sub
 ExceptionControl:
@@ -137,63 +142,67 @@ ErrorForm.Show
 End Sub
 
 Public Function GetDayName(Num) As String
-On Error GoTo Endd:
+On Error GoTo ExceptionControl:
 DateString = "1/" & CMonth & "/" & CYear
 stDay = DateTime.Weekday(DateTime.DateValue(DateString))
 ShowDay = Abs(-1 + Num + stDay - 1) Mod 7 + 1
 GetDayName = DName(ShowDay)
-Endd:
+
+Exit Function
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Main/TransferBalanceToNextMonth()"
+ErrorForm.Show
 End Function
 
 Public Function DName(Num) As String
 Select Case Num
 Case 2
-       DName = "Понедельник"
+       DName = "РџРѕРЅРµРґРµР»СЊРЅРёРє"
 Case 3
-       DName = "Вторник"
+       DName = "Р’С‚РѕСЂРЅРёРє"
 Case 4
-       DName = "Среда"
+       DName = "РЎСЂРµРґР°"
 Case 5
-       DName = "Четверг"
+       DName = "Р§РµС‚РІРµСЂРі"
 Case 6
-       DName = "Пятница"
+       DName = "РџСЏС‚РЅРёС†Р°"
 Case 7
-       DName = "Суббота"
+       DName = "РЎСѓР±Р±РѕС‚Р°"
 Case 1
-       DName = "Воскресенье"
+       DName = "Р’РѕСЃРєСЂРµСЃРµРЅСЊРµ"
 Case 0
-       DName = "Ноль"
+       DName = "РќРѕР»СЊ"
 End Select
 End Function
 
 Public Function MName(Num) As String
 Select Case Num
 Case 1
-       MName = "Январь"
+       MName = "РЇРЅРІР°СЂСЊ"
 Case 2
-       MName = "Февраль"
+       MName = "Р¤РµРІСЂР°Р»СЊ"
 Case 3
-       MName = "Март"
+       MName = "РњР°СЂС‚"
 Case 4
-       MName = "Апрель"
+       MName = "РђРїСЂРµР»СЊ"
 Case 5
-       MName = "Май"
+       MName = "РњР°Р№"
 Case 6
-       MName = "Июнь"
+       MName = "РСЋРЅСЊ"
 Case 7
-       MName = "Июль"
+       MName = "РСЋР»СЊ"
 Case 8
-       MName = "Август"
+       MName = "РђРІРіСѓСЃС‚"
 Case 9
-       MName = "Сентябрь"
+       MName = "РЎРµРЅС‚СЏР±СЂСЊ"
 Case 10
-       MName = "Октябрь"
+       MName = "РћРєС‚СЏР±СЂСЊ"
 Case 11
-       MName = "Ноябрь"
+       MName = "РќРѕСЏР±СЂСЊ"
 Case 12
-       MName = "Декабрь"
+       MName = "Р”РµРєР°Р±СЂСЊ"
 Case Else
-       MName = "#Месяц не определён#"
+       MName = "#РњРµСЃСЏС† РЅРµ РѕРїСЂРµРґРµР»С‘РЅ#"
 End Select
 End Function
 Public Function MNameEng(Num) As String
@@ -230,31 +239,31 @@ End Function
 Public Function MNameRusFix(Num) As String
 Select Case Num
 Case 1
-       MNameRusFix = "Января"
+       MNameRusFix = "РЇРЅРІР°СЂСЏ"
 Case 2
-       MNameRusFix = "Февраля"
+       MNameRusFix = "Р¤РµРІСЂР°Р»СЏ"
 Case 3
-       MNameRusFix = "Марта"
+       MNameRusFix = "РњР°СЂС‚Р°"
 Case 4
-       MNameRusFix = "Апреля"
+       MNameRusFix = "РђРїСЂРµР»СЏ"
 Case 5
-       MNameRusFix = "Мая"
+       MNameRusFix = "РњР°СЏ"
 Case 6
-       MNameRusFix = "Июня"
+       MNameRusFix = "РСЋРЅСЏ"
 Case 7
-       MNameRusFix = "Июля"
+       MNameRusFix = "РСЋР»СЏ"
 Case 8
-       MNameRusFix = "Августа"
+       MNameRusFix = "РђРІРіСѓСЃС‚Р°"
 Case 9
-       MNameRusFix = "Сентября"
+       MNameRusFix = "РЎРµРЅС‚СЏР±СЂСЏ"
 Case 10
-       MNameRusFix = "Октября"
+       MNameRusFix = "РћРєС‚СЏР±СЂСЏ"
 Case 11
-       MNameRusFix = "Ноября"
+       MNameRusFix = "РќРѕСЏР±СЂСЏ"
 Case 12
-       MNameRusFix = "Декабря"
+       MNameRusFix = "Р”РµРєР°Р±СЂСЏ"
 Case Else
-       MNameRusFix = "#Месяц не определён#"
+       MNameRusFix = "#РњРµСЃСЏС† РЅРµ РѕРїСЂРµРґРµР»С‘РЅ#"
 End Select
 End Function
 Public Function MDays(Num) As Integer
@@ -295,22 +304,24 @@ IsOpened = False
 For i = 1 To Workbooks.Count
   If Workbooks(i).Name = Fil Then IsOpened = True
 Next
+
 Exit Function
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/IsOpened()"
 ErrorForm.Show
 End Function
-Public Function GetWorkerID(WorkerKey)
+Public Function GetWorkerID(ByVal WorkerKey As String) As Integer
 On Error GoTo ExceptionControl:
 GetWorkerID = 0
-Sheets("Сотрудники").Select
-  WeHaveWorkers = Cells(1, 2).Value
-For i = 3 To WeHaveWorkers + 3
-If WorkerKey = Cells(i, 3).Value Then
-   GetWorkerID = i
-   i = WeHaveWorkers + 4
-   End If
+Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
+WeHaveWorkers = Cells(1, 2).Value
+For i = 3 To CInt(WeHaveWorkers) + 3
+    If WorkerKey = Cells(i, 3).Value Then
+        GetWorkerID = i
+        Exit Function
+    End If
 Next
+
 Exit Function
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/GetWorkerID()"
@@ -319,6 +330,7 @@ End Function
 Public Function CutZ(Val As String) As Integer
 On Error GoTo ExceptionControl:
 CutZ = CInt(Left(Val, Len(Val) - 1))
+
 Exit Function
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/CutZ()"
@@ -329,14 +341,14 @@ On Error GoTo ExceptionControl:
 Dim PushArray(1 To 284), PullArray(1 To 284), CommentArray(1 To 284) As Boolean
 
 PullBase = "pull.xls"
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 LastMonthTokens = Cells(1, 6).Value
 ThisMonthTokens = Cells(2, 6).Value
 
 If Not IsOpened(PullBase) Then Workbooks.Open Filename:=Path + PullBase
 
 Windows(PullBase).Activate
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 PullYear = Cells(1, 3).Value
 PullMonth = Cells(2, 3).Value
 PulledTokens = Cells(2, 6).Value
@@ -348,7 +360,7 @@ If (PullYear <> CYear) Or (PullMonth <> CMonth) Then
 Else
     If ThisMonthTokens <> PulledTokens Then
         PullLists = ActiveWorkbook.Sheets.Count
-        For i = 9 To PullLists
+            For i = 9 To PullLists
                 Windows(PullBase).Activate
                 Sheets(i).Select
                 PullToken = Cells(2, 1).Value
@@ -357,67 +369,71 @@ Else
                 Windows(WorkersBase).Activate
                 DestinationID = GetWorkerID(DesiredDestination)
                 If DestinationID <> 0 Then
-                Sheets("Сотрудники").Select
-                Cells(DestinationID, 1).Value = 0
-                Sheets(DesiredDestination).Select
-                If Cells(2, 1).Value <> PullToken Then
-                    Cells(2, 1).Value = PullToken
-                    Cells(1, 1).Value = LastDay
-                      
-                      For j = 6 To 284
-                       PushArray(j) = False
-                       If Cells(j, 3).Value = "" Then PushArray(j) = True
-                      Next j
-                    Sheets("Сотрудники").Select
-                    Cells(DestinationID, 1).Value = 1
-                    Windows(PullBase).Activate
-                    Sheets(i).Select
-                      For j = 6 To 284
-                       PullArray(j) = False
-                       CommentArray(j) = False
-                       If Cells(j, 2).Value <> "" Then PullArray(j) = True
-                       If Cells(j, 13).Value <> "" Then CommentArray(j) = True
-                      Next j
-                      
-                      For j = 6 To 284
-                       If (PushArray(j) And PullArray(j)) = True Then
-                            Windows(PullBase).Activate
-                            Sheets(i).Select
-                            CopyAlternateDiam = Cells(j, 14).Value
-                            Range(Cells(j, 2), Cells(j, 9)).Copy
-                            Windows(WorkersBase).Activate
-                            Sheets(DesiredDestination).Select
-                            Cells(j, 2).PasteSpecial
-                            Cells(j, 14).Value = CopyAlternateDiam
-                            Cells(j, 2).Select
-                            Selection.EntireRow.Hidden = False
-                            If Cells(j, 10).FormulaR1C1 = "" Then Cells(j, 10).FormulaR1C1 = "=SUM(RC[-1]:R[8]C[-1])"
-                       End If
-                       If CommentArray(j) = True Then
-                            Windows(PullBase).Activate
-                            Sheets(i).Select
-                            CopyComment = Cells(j, 13).Value
-                            Windows(WorkersBase).Activate
-                            Sheets(DesiredDestination).Select
-                            Cells(j, 13).Value = CopyComment
-                       End If
-                      Next j
-                    TransferBalanceToNextMonth DesiredDestination, Cells(1, 10).Value
+                    Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
+                    Cells(DestinationID, 1).Value = 0
+                    Sheets(DesiredDestination).Select
+                    If Cells(2, 1).Value <> PullToken Then
+                        Cells(2, 1).Value = PullToken
+                        Cells(1, 1).Value = LastDay
+                    
+                        For j = 6 To 284
+                            PushArray(j) = False
+                            If Cells(j, 3).Value = "" Then PushArray(j) = True
+                        Next j
+                           
+                        Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
+                        Cells(DestinationID, 1).Value = 1
+                        Windows(PullBase).Activate
+                        Sheets(i).Select
+                           
+                        For j = 6 To 284
+                           PullArray(j) = False
+                           CommentArray(j) = False
+                           If Cells(j, 2).Value <> "" Then PullArray(j) = True
+                           If Cells(j, 13).Value <> "" Then CommentArray(j) = True
+                        Next j
+                     
+                        For j = 6 To 284
+                           If (PushArray(j) And PullArray(j)) = True Then
+                                Windows(PullBase).Activate
+                                Sheets(i).Select
+                                CopyAlternateDiam = Cells(j, 14).Value
+                                CopyComment = Cells(j, 13).Value
+                                Range(Cells(j, 2), Cells(j, 9)).Copy
+                                Windows(WorkersBase).Activate
+                                Sheets(DesiredDestination).Select
+                                Cells(j, 2).PasteSpecial
+                                Cells(j, 14).Value = CopyAlternateDiam
+                                Cells(j, 13).Value = CopyComment
+                                Cells(j, 2).Select
+                                Selection.EntireRow.Hidden = False
+                                If Cells(j, 10).FormulaR1C1 = "" Then Cells(j, 10).FormulaR1C1 = "=SUM(RC[-1]:R[8]C[-1])"
+                            Else
+                                If (CommentArray(j) = True) Then
+                                    Windows(PullBase).Activate
+                                    Sheets(i).Select
+                                    CopyComment = Cells(j, 13).Value
+                                    Windows(WorkersBase).Activate
+                                    Sheets(DesiredDestination).Select
+                                    Cells(j, 13).Value = CopyComment
+                                End If
+                            End If
+                        Next j
+                        If LMMode Then TransferBalanceToNextMonth DesiredDestination, Cells(1, 10).Value
+                    End If
                 End If
-                End If
-           Next i
- 
+            Next i
     Else
     'pull already done
     End If
     Windows(PullBase).Activate
     ActiveWorkbook.Close
     Windows(WorkersBase).Activate
-    Sheets("Каталог").Select
+    Sheets("РљР°С‚Р°Р»РѕРі").Select
     Cells(2, 6).Value = PulledTokens
-    If IsOpened("lWorkers.xls") Then
+    If LMMode Then
         Windows("Workers.xls").Activate
-        Sheets("Каталог").Select
+        Sheets("РљР°С‚Р°Р»РѕРі").Select
         Cells(1, 6).Value = PulledTokens
         Windows(WorkersBase).Activate
     End If
@@ -430,13 +446,11 @@ ErrorForm.Show
 End Sub
 
 Public Sub MainReInit()
-'On Error GoTo ExceptionControl:
-  ''If ReportExit = False And WorkersExit = False Then BlockIt.Show
-  ''BlockIt.Exit_b.Visible = False
+On Error GoTo ExceptionControl:
   
-If AppMode = "client" Then
+If Not AdminMode Then
     WorkersBase = "tWorkers.xls"
-    Form.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Рабочее место] v3.2"
+    Form.Caption = "РћРћРћ ""Р”РёСЃРє"" РЎРёСЃС‚РµРјР° СЂР°СЃС‡С‘С‚Р° СЃРґРµР»СЊРЅРѕР№ РѕРїР»Р°С‚С‹ [Р Р°Р±РѕС‡РµРµ РјРµСЃС‚Рѕ] " & Version
     Workers.Bonus_Button.Visible = False
     Workers.BonusRate_Box.Visible = False
     Workers.Bonus_Label.Visible = False
@@ -447,9 +461,12 @@ If AppMode = "client" Then
     Form.SaveAndClose.Enabled = False
     Form.SaveState.Enabled = False
     Form.Setup_Button.Enabled = False
+    Form.FeeReport_Button.Enabled = False
+    Form.AvReport_Button.Enabled = False
+    Form.Chamber_Button.Enabled = False
 Else
     WorkersBase = "Workers.xls"
-    Form.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Администратор] v3.2"
+    Form.Caption = "РћРћРћ ""Р”РёСЃРє"" РЎРёСЃС‚РµРјР° СЂР°СЃС‡С‘С‚Р° СЃРґРµР»СЊРЅРѕР№ РѕРїР»Р°С‚С‹ [РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ] " & Version
     Workers.Left_Box.Locked = False
     Workers.Rate_Box.Enabled = True
     Workers.Workers_Spin.Enabled = True
@@ -465,12 +482,16 @@ End If
 Path = Workbooks("Index.xls").Path + "\"
 
 If Not IsOpened(WorkersBase) Then Workbooks.Open Filename:=Path + WorkersBase
-If IsOpened("lWorkers.xls") Then WorkersBase = "lWorkers.xls"
 
-
+If IsOpened("lWorkers.xls") Then
+    WorkersBase = "lWorkers.xls"
+    LMMode = True
+Else
+    LMMode = False
+End If
 
 Windows(WorkersBase).Activate
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 CYear = Cells(1, 3).Value
 CMonth = Cells(2, 3).Value
  
@@ -481,13 +502,12 @@ If NMonth = 13 Then NMonth = 1
   
 NextMonth = MName(NMonth)
 
+Form.GenerateNextMonth.Caption = "РџРµСЂРµР№С‚Рё РЅР° " & NextMonth
+If LMMode Then Form.SwitchToLastMonth.Caption = "Р—Р°РєСЂС‹С‚СЊ " & MName(CMonth) Else _
+                                 Form.SwitchToLastMonth.Caption = "РћС‚РєСЂС‹С‚СЊ " & MName(LMonth)
 
-Form.GenerateNextMonth.Caption = "Перейти на " & NextMonth
-If IsOpened("lWorkers.xls") Then Form.SwitchToLastMonth.Caption = "Закрыть " & MName(CMonth) Else _
-                                 Form.SwitchToLastMonth.Caption = "Открыть " & MName(LMonth)
-
-If AppMode = "server" Then
-    If IsOpened("lWorkers.xls") Then
+If AdminMode Then
+    If LMMode Then
         Form.GenerateNextMonth.Enabled = False
         Form.SaveAndClose.Enabled = False
         Form.SaveState.Enabled = False
@@ -498,13 +518,11 @@ If AppMode = "server" Then
         Form.SaveState.Enabled = True
         Form.Setup_Button.Enabled = True
     End If
-Else
- 
 End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/ReInit()"
+ErrorForm.Error_Box.Value = "MainReInit()"
 ErrorForm.Show
 End Sub
   
