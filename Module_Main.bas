@@ -16,7 +16,7 @@ Public Const PinAdmin = "17ED0255"
 Public Const Archiver = "c:\Program Files\7-zip\7z.exe"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
-Public Const Version = "U-3.3.102"
+Public Const Version = "U-3.3.104"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -57,13 +57,13 @@ ErrorForm.Error_Box.Value = "Main/JustSave()"
 ErrorForm.Show
 End Sub
 Public Sub RunCommand(ByVal Command As String)
-On Error GoTo Endd:
+On Error GoTo over:
 pid = Shell(Command, vbMinimizedNoFocus)
 Do
-Sleep (500)
-AppActivate (pid)
+    Sleep (500)
+    AppActivate (pid)
 Loop Until 1 > 2
-Endd:
+over:
 End Sub
 
 Public Function AfterRecord(ListName)
@@ -97,7 +97,6 @@ Public Function PointFilter(Val, Optional AllowNeg As Boolean = True, Optional A
 On Error GoTo ExceptionControl:
 PointFilter = Val
 String_Len = Len(Val)
-If String_Len = 0 Then Exit Function
 LastChar = Right(Val, 1)
 If LastChar = "1" Or _
    LastChar = "2" Or _
@@ -126,7 +125,7 @@ ErrorForm.Error_Box.Value = "Main/PointFilter()"
 ErrorForm.Show
 End Function
 
-Public Sub TransferBalanceToNextMonth(ByVal Name, ByVal Balance)
+Public Sub TransferBalance(ByVal Name, ByVal Balance)
 On Error GoTo ExceptionControl:
 Windows("Workers.xls").Activate
 If GetWorkerID(Name) <> 0 Then
@@ -137,7 +136,7 @@ Windows("lWorkers.xls").Activate
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/TransferBalanceToNextMonth()"
+ErrorForm.Error_Box.Value = "Main/TransferBalance()"
 ErrorForm.Show
 End Sub
 
@@ -150,7 +149,7 @@ GetDayName = DName(ShowDay)
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/TransferBalanceToNextMonth()"
+ErrorForm.Error_Box.Value = "Main/GetDayName()"
 ErrorForm.Show
 End Function
 
@@ -359,8 +358,7 @@ If (PullYear <> CYear) Or (PullMonth <> CMonth) Then
     Windows(WorkersBase).Activate
 Else
     If ThisMonthTokens <> PulledTokens Then
-        PullLists = ActiveWorkbook.Sheets.Count
-            For i = 9 To PullLists
+            For i = 9 To ActiveWorkbook.Sheets.Count
                 Windows(PullBase).Activate
                 Sheets(i).Select
                 PullToken = Cells(2, 1).Value
@@ -398,18 +396,18 @@ Else
                                 Windows(PullBase).Activate
                                 Sheets(i).Select
                                 CopyAlternateDiam = Cells(j, 14).Value
-                                CopyComment = Cells(j, 13).Value
+                                If CommentArray(j) Then CopyComment = Cells(j, 13).Value
                                 Range(Cells(j, 2), Cells(j, 9)).Copy
                                 Windows(WorkersBase).Activate
                                 Sheets(DesiredDestination).Select
                                 Cells(j, 2).PasteSpecial
                                 Cells(j, 14).Value = CopyAlternateDiam
-                                Cells(j, 13).Value = CopyComment
+                                If CommentArray(j) Then Cells(j, 13).Value = CopyComment
                                 Cells(j, 2).Select
                                 Selection.EntireRow.Hidden = False
                                 If Cells(j, 10).FormulaR1C1 = "" Then Cells(j, 10).FormulaR1C1 = "=SUM(RC[-1]:R[8]C[-1])"
                             Else
-                                If (CommentArray(j) = True) Then
+                                If CommentArray(j) Then
                                     Windows(PullBase).Activate
                                     Sheets(i).Select
                                     CopyComment = Cells(j, 13).Value
@@ -419,7 +417,7 @@ Else
                                 End If
                             End If
                         Next j
-                        If LMMode Then TransferBalanceToNextMonth DesiredDestination, Cells(1, 10).Value
+                        If LMMode Then TransferBalance DesiredDestination, Cells(1, 10).Value
                     End If
                 End If
             Next i

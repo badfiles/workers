@@ -3,7 +3,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Workers
    ClientHeight    =   11025
    ClientLeft      =   45
    ClientTop       =   375
-   ClientWidth     =   17115
+   ClientWidth     =   17085
    OleObjectBlob   =   "Workers.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -13,8 +13,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim inRead, CommentTrigger, DayTrigger As Boolean
-Dim WeChooseMate As Integer
-Dim OldWCat, JCat0, JCat1, JCat2, JCat3 As String
+Dim ChosenMate As Integer
 Dim TestNode As Node
 Const InfoOffset = 6
 Const Lines = 9
@@ -61,7 +60,6 @@ Do While p < Workers.WorkersTree.Nodes.Count
     End If
     p = p + 1
 Loop
-   
 Workers.WorkersTree.Tag = TotalCats
 Workers.WorkersTreeHolder.Visible = False
 
@@ -113,6 +111,7 @@ Do While p < Workers.JobsTree.Nodes.Count
     p = p + 1
 Loop
 Workers.JobsTree.Tag = TotalCats
+
 
 Exit Sub
 ExceptionControl:
@@ -178,11 +177,8 @@ Else
     End If
 End If
 
-If Oklad_Box <> "" Then AboveOklad_Chk.Visible = True _
-    Else AboveOklad_Chk.Visible = False
-
-If Balance_Box.Value >= 0 Then Balance_Label.ForeColor = &H8000&
-If Balance_Box.Value < 0 Then Balance_Label.ForeColor = &HFF&
+If Oklad_Box <> "" Then AboveOklad_Chk.Visible = True Else AboveOklad_Chk.Visible = False
+If Balance_Box.Value >= 0 Then Balance_Label.ForeColor = &H8000& Else Balance_Label.ForeColor = &HFF&
 
 Exit Sub
 ExceptionControl:
@@ -284,8 +280,8 @@ If MakeReadOnly_Chk.Value = True Then Cells(3, 1).Value = "RO" Else Cells(3, 1).
 
 Cells(index - Job + 1, 2).Select
 If (Cells(index - Job + 1, 2).Value = "") And _
-    (Cells(index - Job + 1, 11).Value = "") And _
-    (Cells(index - Job + 1, 13).Value = "") Then _
+   (Cells(index - Job + 1, 11).Value = "") And _
+   (Cells(index - Job + 1, 13).Value = "") Then _
     Selection.EntireRow.Hidden = True _
     Else Selection.EntireRow.Hidden = False
 
@@ -293,7 +289,7 @@ If CInt(Day) > CInt(Cells(1, 1).Value) Then Cells(1, 1).Value = Day
 ReadLockedInfo
 FillDayList (CDay_Box.Value)
 MakeShitLookGood
-If LMMode Then TransferBalanceToNextMonth NameChooser.Value, Balance_Box.Value
+If LMMode Then TransferBalance NameChooser.Value, Balance_Box.Value
 DayTrigger = False
 FillControlBox
 
@@ -331,7 +327,7 @@ Rate_Box.Value = ""
 Rate_Box.Tag = ""
 Unit.Caption = ""
 MakeShitLookGood
-If LMMode Then TransferBalanceToNextMonth NameChooser.Value, Balance_Box.Value
+If LMMode Then TransferBalance NameChooser.Value, Balance_Box.Value
 FillDayList (CDay_Box.Value)
 FillControlBox
 
@@ -380,8 +376,7 @@ Amount_Box.Value = ""
 Rate_Box.Value = ""
 Unit.Caption = ""
 MakeShitLookGood
-If LMMode Then TransferBalanceToNextMonth NameChooser.Value, Balance_Box.Value
-
+If LMMode Then TransferBalance NameChooser.Value, Balance_Box.Value
 FillDayList (CDay_Box.Value)
 FillControlBox
 
@@ -407,8 +402,7 @@ If Day <> "" Then
     Amount_Box.Value = Cells(index, 4).Value
     AltDiam_Box.Value = Cells(index, 14).Value
 
-    If Unit.Caption = "" Then Amount_Box.Enabled = False
-    If Unit.Caption <> "" Then Amount_Box.Enabled = True
+    If Unit.Caption = "" Then Amount_Box.Enabled = False Else Amount_Box.Enabled = True
     If Oklad_Box.Value <> "" And Rate_Box.Value <> "" Then _
         AboveOklad_Chk.Value = True
     If Oklad_Box.Value <> "" And Rate_Box.Value = "" Then _
@@ -442,7 +436,7 @@ ErrorForm.Show
 End Function
 
 Private Sub AltDiam_Box_Change()
-AltDiam_Box.Value = PointFilter(AltDiam_Box.Value, False, False, 4)
+If AltDiam_Box.Value <> "" Then AltDiam_Box.Value = PointFilter(AltDiam_Box.Value, False, False, 4)
 DayTrigger = True
 End Sub
 
@@ -469,9 +463,18 @@ ErrorForm.Show
 End Sub
 
 Private Sub BonusRate_Box_Change()
-BonusRate_Box.Value = PointFilter(BonusRate_Box.Value, False, False, 3)
+If BonusRate_Box.Value <> "" Then BonusRate_Box.Value = PointFilter(BonusRate_Box.Value, False, False, 3)
 End Sub
 
+
+
+Private Sub CollapseJobs_Button_Click()
+p = 1
+Do While p < JobsTree.Nodes.Count
+    JobsTree.Nodes(p).Expanded = False
+    p = p + 1
+Loop
+End Sub
 
 Private Sub Comment_Box_Change()
 If Not inRead Then CommentTrigger = True
@@ -568,7 +571,8 @@ If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select
 Records = LastFilled(Day)
 DayList.ListItems.Clear
 Comment_Box.Clear
-'Comment_Box.AddItem ("")
+Comment_Box.Value = ""
+CommentTrigger = False
 If NameChooser.Value <> "" And Day <> "" And Records <> 0 Then
     TotalTime = 0
     
@@ -614,7 +618,10 @@ If Records > Lines - 1 Then CJob_Box.Value = Lines
 
 If Day <> "" Then
     index = InfoOffset + Lines * (Day - 1)
-    If Comment_Box.ListCount > 0 Then Comment_Box.Value = Comment_Box.List(Comment_Box.ListCount - 1)
+    If Comment_Box.ListCount > 0 Then
+        Comment_Box.Value = Comment_Box.List(Comment_Box.ListCount - 1)
+        CommentTrigger = False
+    End If
     PrePay_Box.Value = Cells(index, 11).Value
 End If
 
@@ -630,7 +637,7 @@ DayTrigger = True
 End Sub
 
 Private Sub Amount_Box_Change()
-Amount_Box.Value = PointFilter(Amount_Box.Value)
+If Amount_Box.Value <> "" Then Amount_Box.Value = PointFilter(Amount_Box.Value)
 DayTrigger = True
 End Sub
 
@@ -648,9 +655,9 @@ WorkersTreeHolder.Left = 320
 
 DateAndWorker_Frame.Visible = False
 WorkersTreeHolder.Visible = True
-If WeChooseMate <> 0 Then
-    WorkersTree.Nodes(WeChooseMate).Selected = True
-    WeChooseMate = 0
+If ChosenMate <> 0 Then
+    WorkersTree.Nodes(ChosenMate).Selected = True
+    ChosenMate = 0
 End If
 WorkersTree.SetFocus
 
@@ -670,8 +677,8 @@ WorkersTreeHolder.Left = 250
 ' Next
 'WorkersTree.Visible = True
 WorkersTreeHolder.Visible = True
-WeChooseMate = WorkersTree.SelectedItem.index
-If WeChooseMate = 0 Then WeChooseMate = 1
+ChosenMate = WorkersTree.SelectedItem.index
+If ChosenMate = 0 Then ChosenMate = 1
 DayList.Visible = False
 WorkersTree.SetFocus
 End Sub
@@ -725,21 +732,20 @@ End If
 End Sub
 
 Private Sub Left_Box_Change()
-Left_Box.Value = PointFilter(Left_Box.Value)
+If Left_Box.Value <> "" Then Left_Box.Value = PointFilter(Left_Box.Value)
 End Sub
 
 Private Sub MateChooser_Change()
-If MateChooser.Value = "" Then CopyDay_Button.Enabled = False
-If MateChooser.Value <> "" Then CopyDay_Button.Enabled = True
+If MateChooser.Value = "" Then CopyDay_Button.Enabled = False Else CopyDay_Button.Enabled = True
 End Sub
 
 
 Private Sub Oklad_Box_Change()
-Oklad_Box.Value = PointFilter(Oklad_Box.Value, False, False)
+If Oklad_Box.Value <> "" Then Oklad_Box.Value = PointFilter(Oklad_Box.Value, False, False)
 End Sub
 
 Private Sub PrePay_Box_Change()
-PrePay_Box.Value = PointFilter(PrePay_Box.Value, False)
+If PrePay_Box.Value <> "" Then PrePay_Box.Value = PointFilter(PrePay_Box.Value, False)
 End Sub
 Function isVisible(ByVal Day As Integer) As Boolean
 On Error GoTo ExceptionControl:
@@ -818,12 +824,12 @@ ErrorForm.Error_Box.Value = "Workers/Print_Button_Click()"
 ErrorForm.Show
 End Sub
 Private Sub Rate_Box_Change()
-Rate_Box.Value = PointFilter(Rate_Box.Value)
+If Rate_Box.Value <> "" Then Rate_Box.Value = PointFilter(Rate_Box.Value)
 DayTrigger = True
 End Sub
 
 Private Sub Time_Box_Change()
-Time_Box.Value = PointFilter(Time_Box.Value, False)
+If Time_Box.Value <> "" Then Time_Box.Value = PointFilter(Time_Box.Value, False)
 DayTrigger = True
 End Sub
 Private Sub Apply_Button_Click()
@@ -923,7 +929,7 @@ If NameChooser.Value <> "" And MateChooser.Value <> "" Then
 
     If Not AdminMode Then SetRandomMark
     MakeShitLookGood
-    If LMMode Then TransferBalanceToNextMonth MateChooser.Value, Cells(1, 10).Value
+    If LMMode Then TransferBalance MateChooser.Value, Cells(1, 10).Value
 Sheets(NameChooser.Value).Select
 End If
 
@@ -1039,9 +1045,9 @@ WorkersTreeHolder.Visible = True
 
 Total = WorkersTree.Nodes.Count
 TotalCat = CInt(WorkersTree.Tag)
-If WeChooseMate <> 0 Then
-    index = WeChooseMate
-    WeChooseMate = 0
+If ChosenMate <> 0 Then
+    index = ChosenMate
+    ChosenMate = 0
 Else
     index = WorkersTree.SelectedItem.index
 End If
@@ -1063,9 +1069,9 @@ ObjectsRecall
 WorkersTreeHolder.Top = -500
 WorkersTreeHolder.Visible = True
 
-If WeChooseMate <> 0 Then
-    index = WeChooseMate
-    WeChooseMate = 0
+If ChosenMate <> 0 Then
+    index = ChosenMate
+    ChosenMate = 0
 Else
     index = WorkersTree.SelectedItem.index
 End If
@@ -1139,7 +1145,7 @@ Private Sub WorkersTree_DblClick()
 On Error GoTo ExceptionControl:
 If WorkersTree.SelectedItem.Key <> "" And WorkersTree.SelectedItem.Tag <> "Cat" Then
      
-     If WeChooseMate = 0 Then
+     If ChosenMate = 0 Then
      
         If Not AdminMode Then
             BlockIt.Pass = WorkersTree.SelectedItem.Tag
