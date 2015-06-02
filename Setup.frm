@@ -83,19 +83,7 @@ Endd:
 End Function
 
 
-Function GetWorkerID(WorkerKey)
 
-Sheets("Сотрудники").Select
-  WeHaveWorkers = Cells(1, 2).Value
-
-For i = 3 To WeHaveWorkers + 3
-If WorkerKey = Cells(i, 3).Value Then
-   GetWorkerID = i
-   i = WeHaveWorkers + 4
-   End If
-Next
-
-End Function
 
 Function wReadLockedInfo()
 'On Error GoTo Endd
@@ -105,7 +93,7 @@ Read = 1
 LastName_Box.Value = Cells(ID, 2).Value
 wCatChooser.Value = wCatChooser.List(Cells(ID, 6).Value - InfoOffset)
 Names_Box.Value = Cells(ID, 5).Value
-
+NewPin_Box.Value = ""
 BaseName_Box.Value = NameChooser.Value
 isHidden_wmark.Value = Cells(ID, 4)
 Read = 0
@@ -119,6 +107,8 @@ Cells(ID, 3).Value = BaseName_Box.Value
 
 Cells(ID, 6).Value = wCatChooser.ListIndex + InfoOffset
 Cells(ID, 5).Value = Names_Box.Value
+If NewPin_Box.Value <> "" Then Cells(ID, 7).Value = BlockIt.CalcStr(NewPin_Box.Value)
+NewPin_Box.Value = ""
 
 If isHidden_wmark.Value = True Then Cells(ID, 4).Value = 1 _
         Else Cells(ID, 4).Value = 0
@@ -154,9 +144,6 @@ FineTuning_Form.Show
 End Sub
 
 
-Private Sub OrgChooser_Change()
-
-End Sub
 
 Private Sub wAdd_Button_Click()
 If CheckBaseName(0) = 0 Then
@@ -428,7 +415,7 @@ If JobsTree.SelectedItem.Key <> "" Then
 jAdd_Button.Enabled = False
 End Sub
 Private Sub TimeRate_Box_Change()
-TimeRate_Box.Value = Workers.PointFilter(TimeRate_Box.Value)
+TimeRate_Box.Value = PointFilter(TimeRate_Box.Value, True, True)
 If Detonate = 0 Then
  Detonate = 1
  UnitRate_Box.Value = "0"
@@ -437,7 +424,7 @@ If Detonate = 0 Then
 End Sub
 
 Private Sub UnitRate_Box_Change()
- UnitRate_Box.Value = Workers.PointFilter(UnitRate_Box.Value)
+ UnitRate_Box.Value = PointFilter(UnitRate_Box.Value, True, True)
  If Detonate = 0 Then
  Detonate = 1
  TimeRate_Box.Value = "0"

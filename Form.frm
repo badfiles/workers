@@ -1,6 +1,5 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Form 
-   Caption         =   "ООО ""ТехПолиМет"" Автоматизированная система учёта продукции [Главный модуль] v2.0"
    ClientHeight    =   11025
    ClientLeft      =   6045
    ClientTop       =   6330
@@ -15,6 +14,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim Leftt, Income, outcome, Balance, LastName, Namess As String
 
+
 Function SetCaption(Fil, Side)
 ''Protect
 If Side = 1 Then
@@ -26,26 +26,7 @@ If Side = -1 Then
 End If
 End Function
 
-Function OpenFile(Fil)
-On Error GoTo FIn
-SetCaption(Fil, 1) = 0
-Workbooks.Open FileName:=Fil
-FIn:
-End Function
-Function SaveClose(Fil)
-On Error GoTo FIn
-Windows(Fil).Activate
-ActiveWorkbook.Save
-ActiveWorkbook.Close
-FIn:
-End Function
 
-Function JustSave(Fil)
-On Error GoTo FIn
-Windows(Fil).Activate
-ActiveWorkbook.Save
-FIn:
-End Function
 Function GetAv(Line)
  For i = 1 To Len(Line) - 1
  If Mid(Line, i, 1) = "#" Then GetAv = Right(Line, Len(Line) - i)
@@ -58,7 +39,7 @@ Function GetDay(Line) As Integer
 End Function
 
 Private Sub AvReport_Button_Click()
-'On Error GoTo Start
+On Error GoTo ExceptionControl:
 Windows(WorkersBase).Activate
  Sheets("АвансовыйОтчёт").Select
 Cells(2, 2) = DateTime.Date
@@ -159,13 +140,10 @@ If NoPrintAvReport_Chk.Value = False Then
      ReportExit = True
 End If
 
-
-GoTo Endd:
-Start:
-ErrorForm.Error_Box.Value = "AvReport()"
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/AvReport_Button_Click()"
 ErrorForm.Show
-Endd:
-
 End Sub
 
 Private Sub Block_Button_Click()
@@ -222,12 +200,12 @@ Orders.Region_Filter.Value = "Все"
 Orders.OrgName_Box.Value = _
             Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Text
 Orders.oID.Value = _
-            Workers.CutZ(Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Key)
+            CutZ(Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Key)
 
 Orders.OrgsTreeHolder.Visible = True
 Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Selected = True
 Orders.oCat.Value = _
-            Workers.CutZ(Orders.OrgsTree.SelectedItem.Parent.Key)
+            CutZ(Orders.OrgsTree.SelectedItem.Parent.Key)
 Orders.OrgsTreeHolder.Visible = False
 
 'If LastPerson <> "" Then Workers.NameChooser.Value = LastPerson Else _
@@ -237,161 +215,323 @@ Orders.Show
 
 End Sub
 
+
 Private Sub GenerateNextMonth_Click()
+On Error GoTo ExceptionControl:
+If DateTime.Month(DateTime.Date) <> NMonth Then
+    b = MsgBox(NextMonth & " ещё не наступил (или уже прошёл :-D)", vbOKOnly, "Внимание")
+    Exit Sub
+End If
 
-If DateTime.Month(DateTime.Date) = CMonth Then
-
-  b = MsgBox(NextMonth & " ещё не наступил (или уже прошёл :-D)", vbOKOnly, "Внимание")
-  GoTo Endd
-  
-  End If
-
-InsureForm.CommandButton2.SetFocus
+InsureForm.NoButton.SetFocus
+InsureForm.Msg_label.Caption = "После перехода на новый месяц будет невозможно " & SwitchToLastMonth.Caption & ". Продолжаем?"
 InsureForm.Show
 If InsureForm.OK.Value = True Then
-InsureForm.OK.Value = False
+    SaveClose (WorkersBase)
 
-SaveClose (WorkersBase)
-
- ArcMonth = CMonth - 1
- ArcYear = CYear
- If ArcMonth = 0 Then
-    ArcMonth = 12
-    ArcYear = CYear - 1
+    ArcMonth = CMonth - 1
+    ArcYear = CYear
+    If ArcMonth = 0 Then
+        ArcMonth = 12
+        ArcYear = CYear - 1
     End If
 
-''Name Path + "lWorkers.xls" As Path + "iworkers.xls"
+    ''Name Path + "lWorkers.xls" As Path + "iworkers.xls"
  
- ArcName = Path + "Archive\Valid\" & MNameEng(ArcMonth) & "_" & ArcYear
- ArcFile = Path + "lWorkers.xls"
- a = Shell("C:\Program Files\WinRar\WinRar.EXE m -ep " & ArcName & " " & ArcFile, vbMinimizedNoFocus)
+    ArcName = Path + "Archive\Valid\" & MNameEng(ArcMonth) & "_" & ArcYear
+    ArcFiles = Path + "lWorkers.xls"
+    
+    RunCommand ("C:\Program Files\7-zip\7z.exe a " & ArcKey & " " & ArcName & " " & ArcFiles)
+     
+    Destination = Path & "lWorkers.xls"
+    Source = Path & WorkersBase
+    FileCopy Source, Destination
+
+    Workbooks.Open Filename:=Path + WorkersBase
+
+    Windows(WorkersBase).Activate
  
-
-On Error GoTo Smart
-Do
-AppActivate (a)
-Loop Until 1 > 2
-Smart:
-
- 
- Destination = Path & "lWorkers.xls"
- Source = Path & WorkersBase
-
-
-FileCopy Source, Destination
-
-Workbooks.Open FileName:=Path + WorkersBase
-
- Windows(WorkersBase).Activate
- 
- Sheets("Каталог").Select
-  CYear = Cells(1, 3).Value
-  CMonth = Cells(2, 3).Value
-  Cells(2, 3).Value = Cells(2, 3).Value + 1
-  If CMonth = 12 Then
-     Cells(2, 3).Value = 1
-     Cells(1, 3).Value = Cells(1, 3).Value + 1
-  End If
+    Sheets("Каталог").Select
+    CYear = Cells(1, 3).Value
+    CMonth = Cells(2, 3).Value
+    Cells(2, 3).Value = Cells(2, 3).Value + 1
+    If CMonth = 12 Then
+        Cells(2, 3).Value = 1
+        Cells(1, 3).Value = Cells(1, 3).Value + 1
+    End If
   
-  CYear = Cells(1, 3).Value
-  CMonth = Cells(2, 3).Value
+    CYear = Cells(1, 3).Value
+    CMonth = Cells(2, 3).Value
     Cells(2, 2).Value = MName(CMonth)
-
- For i = 9 To ActiveWorkbook.Sheets.Count
-  Sheets(i).Select
-  
-  Cells(2, 10).Value = Cells(1, 10).Value
-  
-  Cells(1, 1).ClearContents
-  Range("b6:k284").ClearContents
-  Range("m6:m284").ClearContents
-  
-  Rows("6:284").Select
-  Selection.EntireRow.Hidden = True
- 
- Next
-ReportExit = True
-FormShow
-Endd:
+    
+    Cells(1, 6).Value = Cells(2, 6).Value
+    Cells(2, 6).Value = ""
+    
+    For i = 9 To ActiveWorkbook.Sheets.Count
+        Sheets(i).Select
+        Cells(2, 10).Value = Cells(1, 10).Value
+        Cells(1, 1).ClearContents
+        Range("b6:k284").ClearContents
+        Range("m6:n284").ClearContents
+        Rows("6:284").Select
+        Selection.EntireRow.Hidden = True
+    Next
+    ReportExit = True
+    FormShow
 End If
+
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/GenerateNextMonth_Click()"
+ErrorForm.Show
 End Sub
 
-Private Sub SaveAndClose_Click()
+Private Sub MakePull_Button_Click()
+SaveClose (WorkersBase)
+PullBase = "pull.xls"
+Destination = Path & PullBase
+Source = Path & WorkersBase
+FileCopy Source, Destination
+FormShow
+End Sub
+
+Private Sub DoPush_Button_Click()
+
+Windows(WorkersBase).Activate
+Sheets("Каталог").Select
+ReferenceTokens = Cells(2, 6).Value
+
+PushBase = "push.xls"
+Destination = Path & "tWorkers.xls"
+Source = Path & PushBase
+
+If Not IsOpened("push.xls") Then Workbooks.Open Filename:=Path + PushBase
+Windows(PushBase).Activate
+Sheets("Каталог").Select
+
+If (Cells(1, 6).Value = ReferenceTokens) Or (Cells(2, 6).Value = ReferenceTokens) Then
+    ActiveWorkbook.Close SaveChanges:=False
+    Windows(WorkersBase).Activate
+    ActiveWorkbook.Close SaveChanges:=False
+    FileCopy Source, Destination
+    Workbooks.Open Filename:=Path + WorkersBase
+    Windows(WorkersBase).Activate
+Else
+    ActiveWorkbook.Close
+    Windows(WorkersBase).Activate
+End If
+
+FormShow
+End Sub
+
+
+Private Sub PullData_Button_Click()
+If AppMode = "server" Then PullOnServer
+End Sub
+
+Sub DropSensitiveData()
+On Error GoTo ExceptionControl:
+    Sheets("АвансовыйОтчёт").Select
+    Range("a7:bb684").ClearContents
+    Sheets("Отчёт").Select
+    Range("a7:bb684").ClearContents
+    Sheets("Каталог").Select
+
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/DropSensitiveData()"
+ErrorForm.Show
+End Sub
+
+
+Sub DoneForNow(ByVal CloseBase As Boolean)
+On Error GoTo ExceptionControl:
+If AppMode = "server" Then
+    Windows(WorkersBase).Activate
+    DropSensitiveData
     SaveClose (WorkersBase)
     
-   Path = Workbooks("Index.XLS").Path + "\"
+    PushBase = "push.xls"
+    Destination = Path & PushBase
+    Source = Path & WorkersBase
+    FileCopy Source, Destination
 
- ArcName = Path + "Archive\LastState"
- ArcFiles = Path + "*Workers.xls"
- a = Shell("C:\Program Files\WinRar\WinRar.EXE a -ep -y " & ArcName & " " & ArcFiles, vbMinimizedNoFocus)
+    ArcName = Path & "push.7z"
+    ArcFiles = Path & PushBase
+    RunCommand ("C:\Program Files\7-zip\7z.exe a -sdel " & ExchangeKey & " " & ArcName & " " & ArcFiles)
+    
+    If CloseBase Then
+        ArcName = Path + "Archive\LastState.7z"
+        ArcFiles = Path + "*Workers.xls"
+        RunCommand ("C:\Program Files\7-zip\7z.exe a " & ArcKey & " " & ArcName & " " & ArcFiles)
+        a = Shell("ftp -v -s:" & Path & "ftp_server_send_all " & FtpStorageName, vbMinimizedNoFocus)
+    Else
+        a = Shell("ftp -v -s:" & Path & "ftp_server_send " & FtpStorageName, vbMinimizedNoFocus)
+    End If
+End If
 
-On Error GoTo Start
-Do
-AppActivate (a)
-Loop Until 1 > 2
-Start:
-    Windows("Index.xls").Close (SaveChanges = xlDoNotSaveChanges)
-    
-    Form.Hide
-    
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/DoneForNow()"
+ErrorForm.Show
+End Sub
+Private Sub SaveAndClose_Click()
+On Error GoTo ExceptionControl:
+DoneForNow (True)
+Windows("Index.xls").Close (SaveChanges = xlDoNotSaveChanges)
+Form.Hide
 Application.Quit
 
+
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/SaveAndClose_Click()"
+ErrorForm.Show
 End Sub
 
 Private Sub SaveState_Click()
-On Error Resume Next
-
-JustSave (WorkersBase)
-
+DoneForNow (False)
+FormShow
 End Sub
 
 Private Sub SwitchToLastMonth_Click()
+On Error Resume Next
+If IsOpened("lWorkers.xls") Then
+    If AppMode = "server" Then
+        Windows(WorkersBase).Activate
+        DropSensitiveData
+        SaveClose ("lWorkers.xls")
+        ArcName = Path + "lm.7z"
+        ArcFiles = Path + "lWorkers.xls"
+        RunCommand ("C:\Program Files\7-zip\7z.exe a " & ExchangeKey & " " & ArcName & " " & ArcFiles)
+    Else
+        Windows(WorkersBase).Activate
+        ActiveWorkbook.Close SaveChanges:=False
+    End If
+Else
+    Workbooks.Open Filename:=Path & "lWorkers.xls"
+End If
 
-If Not IsOpened("lWorkers.xls") Then Workbooks.Open FileName:=Path & "lWorkers.xls" _
-Else SaveClose ("lWorkers.xls")
 ReportExit = True
 FormShow
 End Sub
 
 
-Private Sub Workers_Button_Click()
-
+Private Sub InitWorkers()
+On Error GoTo ExceptionControl:
+Form.Top = 0
+Form.Left = 0
+Windows(WorkersBase).Activate
 Workers.CDay_Box.Clear
-     
-  For i = 1 To MDays(CMonth)
-   Workers.CDay_Box.AddItem (i)
-  Next
-
-
+For i = 1 To MDays(CMonth)
+    Workers.CDay_Box.AddItem (i)
+Next
+    
 If LastWorkersDay <> 0 Then
-Workers.CDay_Box.Value = LastWorkersDay
+    Workers.CDay_Box.Value = LastWorkersDay
 Else
-Workers.CDay_Box.Value = DateTime.Day(DateTime.Date)
+    Workers.CDay_Box.Value = DateTime.Day(DateTime.Date)
 End If
-
 
 Workers.Label_FullDate.Caption = GetDayName(Workers.CDay_Box.Value) & ", " & _
                             Workers.CDay_Box.Value & " " & MNameRusFix(CMonth)
-Workers.IncomeLabel.Caption = "Приход за " & MName(CMonth)
-Workers.OutComeLabel.Caption = "Расход за " & MName(CMonth)
+Workers.IncomeLabel.Caption = "Заработано за " & MName(CMonth)
+Workers.OutComeLabel.Caption = "Выдано за " & MName(CMonth)
 Workers.LeftLabel.Caption = "Остаток за " & MName(LMonth)
 
-Workers.ScanWorkers (WorkersBase)
+Workers.ScanWorkers
 Workers.ScanJobs
 
+If IsOpened("lWorkers.xls") Then
+    Workers.LastMonth_Label.Visible = True
+    Workers.MakeReadOnly_Chk.Visible = False
+Else
+    Workers.LastMonth_Label.Visible = False
+    Workers.MakeReadOnly_Chk.Visible = True
+End If
 
-Workers.RealName_Box.Value = _
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/InitWorkers()"
+ErrorForm.Show
+End Sub
+
+Private Sub Workers_Button_Click()
+'On Error GoTo ExceptionControl:
+MainReInit
+If AppMode = "server" Then
+        
+    ArcFiles = "pull.xls"
+    RunCommand ("ftp -v -s:" & Path & "ftp_server_get " & FtpStorageName)
+    ArcName = Path + "pull.7z"
+    RunCommand ("C:\Program Files\7-zip\7z.exe e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
+    
+    PullOnServer
+
+    InitWorkers
+    Workers.WorkersTreeHolder.Visible = True
+    Workers.RealName_Box.Value = ""
+    Workers.NameChooser.Value = ""
+    Workers.RealName_Box.Value = _
             Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Text
-Workers.NameChooser.Value = _
+    Workers.NameChooser.Value = _
             Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Key
-            Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Selected = True
+    Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Selected = True
+    Workers.WorkersTreeHolder.Visible = False
+    
+Else
+    If Not IsOpened("lWorkers.xls") Then
+        Windows(WorkersBase).Activate
+        Sheets("Каталог").Select
+        ReferenceTokens = Cells(2, 6).Value
+
+        ArcFiles = "push.xls"
+        ArcName = Path & "push.7z"
+        RunCommand ("ftp -v -s:" & Path & "ftp_client_get " & FtpStorageName)
+        RunCommand ("C:\Program Files\7-zip\7z.exe e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
+
+        PushBase = "push.xls"
+        Destination = Path & "tWorkers.xls"
+        Source = Path & PushBase
+
+        If Not IsOpened("push.xls") Then Workbooks.Open Filename:=Path + PushBase
+        Windows(PushBase).Activate
+        Sheets("Каталог").Select
+
+        If (Cells(1, 6).Value = ReferenceTokens) Or (Cells(2, 6).Value = ReferenceTokens) Then
+            ActiveWorkbook.Close SaveChanges:=False
+            Windows(WorkersBase).Activate
+            ActiveWorkbook.Close SaveChanges:=False
+            FileCopy Source, Destination
+            MainReInit
+        Else
+            ActiveWorkbook.Close
+            Windows(WorkersBase).Activate
+        End If
+    End If
+    InitWorkers
+    Workers.MakeReadOnly_Chk.Visible = False
+    If IsOpened("lWorkers.xls") Then
+        Workers.Apply_Button.Enabled = False
+        Workers.Clear_Button.Enabled = False
+        Workers.Delete_Button.Enabled = False
+        Workers.ChooseMate_Button.Enabled = False
+    End If
+End If
 'If LastPerson <> "" Then Workers.NameChooser.Value = LastPerson Else _
 '                         Workers.NameChooser.Value = Workers.NameChooser.List(0)
 Workers.Show
+
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/Workers_Button_Click()"
+ErrorForm.Show
 End Sub
 
+
+
 Private Sub FeeReport_Button_Click()
-'On Error GoTo Start
+On Error GoTo ExceptionControl:
 Windows(WorkersBase).Activate
  Sheets("Отчёт").Select
 
@@ -486,29 +626,22 @@ Start = Start + 1
 
 End If
 
-
-
 Next
-
-
 If NoPrintFeeReport_Chk.Value = True Then Sheets("Отчёт").PrintOut
 If NoPrintFeeReport_Chk.Value = False Then
      Form.Hide
      ReportExit = True
 End If
 
-
-GoTo Endd:
-Start:
-ErrorForm.Error_Box.Value = "FeeReport()"
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/FeeReport_Button_Click()"
 ErrorForm.Show
-Endd:
 End Sub
 
 Private Sub Setup_Button_Click()
-
+On Error GoTo ExceptionControl:
 Setup.ScanWorkers (WorkersBase)
-            
             
 Setup.ScanWCats
 Setup.ScanJobs
@@ -520,10 +653,10 @@ Setup.ScanOCats
 Setup.NameChooser.Value = _
             Setup.WorkersTree.Nodes(CInt(Setup.WorkersTree.Tag) + 1).Key
 Setup.jID.Value = _
-            Workers.CutZ(Setup.JobsTree.Nodes(CInt(Setup.JobsTree.Tag) + 1).Key)
+            CutZ(Setup.JobsTree.Nodes(CInt(Setup.JobsTree.Tag) + 1).Key)
             
 Setup.oID.Value = _
-            Workers.CutZ(Setup.OrgsTree.Nodes(CInt(Setup.OrgsTree.Tag) + 1).Key)
+            CutZ(Setup.OrgsTree.Nodes(CInt(Setup.OrgsTree.Tag) + 1).Key)
 
 
 
@@ -533,9 +666,18 @@ Setup.oCatChooser.Value = Setup.oCatChooser.List(1)
 
 
 Setup.Show
+
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/Setup_Button_Click()"
+ErrorForm.Show
 End Sub
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
-''If CloseMode = 0 Then Cancel = 1
+BlockIt.Pass = PinAdmin
+BlockIt.PassOK = 0
+BlockIt.Password_Box.SetFocus
+BlockIt.Show
+If BlockIt.PassOK = 0 And CloseMode = 0 Then Cancel = 1
 End Sub
 
 
