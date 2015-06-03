@@ -16,7 +16,7 @@ Public Const PinAdmin = "17ED0255"
 Public Const Archiver = "c:\Program Files\7-zip\7z.exe"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
-Public Const Version = "U-3.3.104"
+Public Const Version = "U-3.3.106"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -481,12 +481,8 @@ Path = Workbooks("Index.xls").Path + "\"
 
 If Not IsOpened(WorkersBase) Then Workbooks.Open Filename:=Path + WorkersBase
 
-If IsOpened("lWorkers.xls") Then
-    WorkersBase = "lWorkers.xls"
-    LMMode = True
-Else
-    LMMode = False
-End If
+LMMode = IsOpened("lWorkers.xls")
+If LMMode Then WorkersBase = "lWorkers.xls"
 
 Windows(WorkersBase).Activate
 Sheets("Каталог").Select

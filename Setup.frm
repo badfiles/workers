@@ -1,6 +1,6 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Setup 
-   Caption         =   "Настройки"
+   Caption         =   "РќР°СЃС‚СЂРѕР№РєРё"
    ClientHeight    =   5895
    ClientLeft      =   45
    ClientTop       =   330
@@ -40,7 +40,7 @@ Setup.WorkersTree.Visible = True
 Setup.WorkersTreeHolder.Visible = True
 Setup.WorkersTree.Nodes.Clear
 
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Total = Cells(4, 23).Value
 For i = InfoOffset To CInt(InfoOffset - 1 + Total)
     Setup.WorkersTree.Nodes.Add(, , CStr(Cells(i, 24)) & "z", Cells(i, 23).Value).Sorted = True
@@ -48,7 +48,7 @@ For i = InfoOffset To CInt(InfoOffset - 1 + Total)
     
   Next
   
-Sheets("Сотрудники").Select
+Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
   WeHaveWorkers = Cells(1, 2).Value
   For i = 3 To WeHaveWorkers + 3
      For p = 1 To Total
@@ -101,7 +101,7 @@ Endd:
 End Function
 
 Function WorkersProcess(ID)
-Sheets("Сотрудники").Select
+Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
 Cells(ID, 2).Value = LastName_Box.Value
 Cells(ID, 3).Value = BaseName_Box.Value
 
@@ -118,15 +118,15 @@ Sheets(BaseName_Box.Value).Select
 
 Cells(1, 2).Value = LastName_Box.Value
 Cells(2, 2).Value = Names_Box.Value
-Cells(1, 4).Value = wCatChooser.ListIndex + InfoOffset
-If isHidden_wmark.Value = True Then Cells(2, 1).Value = 1 _
+'Cells(1, 4).Value = wCatChooser.ListIndex + InfoOffset
+'If isHidden_wmark.Value = True Then Cells(2, 1).Value = 1 _
         Else Cells(2, 1).Value = 0
 
 
 End Function
 
 Function wUpdateBaseName()
-Sheets("Сотрудники").Select
+Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
 ID = GetWorkerID(NameChooser.Value)
 Cells(ID, 3).Value = BaseName_Box.Value
 
@@ -144,14 +144,13 @@ FineTuning_Form.Show
 End Sub
 
 
-
 Private Sub wAdd_Button_Click()
 If CheckBaseName(0) = 0 Then
 Read = 1
-Sheets("Образец").Select
-Sheets("Образец").Copy After:=Sheets(ActiveWorkbook.Sheets.Count)
+Sheets("РћР±СЂР°Р·РµС†").Select
+Sheets("РћР±СЂР°Р·РµС†").Copy After:=Sheets(ActiveWorkbook.Sheets.Count)
 ActiveWorkbook.Sheets(ActiveWorkbook.Sheets.Count).Name = BaseName_Box.Value
-Sheets("Сотрудники").Select
+Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
 ID = Cells(1, 2).Value + 3
 Cells(1, 2).Value = Cells(1, 2).Value + 1
 WorkersProcess (ID)
@@ -168,7 +167,7 @@ If CheckBaseName(ID) = 0 Then wRecordInfo (ID)
 End Sub
 Function CheckBaseName(ExcludePosition)
 CheckBaseName = 0
-Sheets("Сотрудники").Select
+Sheets("РЎРѕС‚СЂСѓРґРЅРёРєРё").Select
   WeHaveWorkers = Cells(1, 2).Value
 For i = 3 To WeHaveWorkers + 3
 If BaseName_Box.Value = Cells(i, 3).Value And i <> ExcludePosition Then
@@ -216,7 +215,7 @@ End Sub
 
 Function GetWCatID(CatName)
 
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Total = Cells(4, 23).Value
 
 For i = InfoOffset To CInt(InfoOffset - 1 + Total)
@@ -231,7 +230,7 @@ If CatName = "" Then GetWCatID = 1
 End Function
 
 Function ScanWCats()
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Setup.cCatChooser.Clear
 Setup.wCatChooser.Clear
 Total = Cells(4, 23).Value
@@ -315,7 +314,7 @@ End Sub
 ''################################### Start JobTab Surr _#####################################################
 
 Function ScanJobs()
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Setup.JobsTree.Visible = True
 Setup.JobsTreeHolder.Visible = True
 
@@ -352,7 +351,7 @@ Setup.JobsTreeHolder.Visible = False
 End Sub
 Function jReadLockedInfo()
 'On Error GoTo Endd
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 
 ID = jID.Value
 
@@ -409,13 +408,13 @@ End Sub
 
 Private Sub JobsTree_DblClick()
 If JobsTree.SelectedItem.Key <> "" Then
-    jID.Value = Workers.CutZ(JobsTree.SelectedItem.Key)
+    jID.Value = CutZ(JobsTree.SelectedItem.Key)
     JobsTreeHolder.Visible = False
     End If
 jAdd_Button.Enabled = False
 End Sub
 Private Sub TimeRate_Box_Change()
-TimeRate_Box.Value = PointFilter(TimeRate_Box.Value, True, True)
+If TimeRate_Box.Value <> "" Then TimeRate_Box.Value = PointFilter(TimeRate_Box.Value, True, True)
 If Detonate = 0 Then
  Detonate = 1
  UnitRate_Box.Value = "0"
@@ -424,7 +423,7 @@ If Detonate = 0 Then
 End Sub
 
 Private Sub UnitRate_Box_Change()
- UnitRate_Box.Value = PointFilter(UnitRate_Box.Value, True, True)
+ If UnitRate_Box.Value <> "" Then UnitRate_Box.Value = PointFilter(UnitRate_Box.Value, True, True)
  If Detonate = 0 Then
  Detonate = 1
  TimeRate_Box.Value = "0"
@@ -446,7 +445,7 @@ If OnSale_Mark.Value = False Then Frame4.Visible = False
 End Sub
 
 Private Sub Price_Change()
-Price.Value = Workers.PointFilter(Price.Value)
+If Price.Value <> "" Then Price.Value = PointFilter(Price.Value)
 End Sub
 Private Sub jChange_Button_Click()
 ProcessJobs (jID.Value)
@@ -454,7 +453,7 @@ ScanJobs
 End Sub
 Private Sub jAdd_Button_Click()
 Read = 1
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 ID = Cells(4, 2).Value + InfoOffset
 ProcessJobs (ID)
 Cells(ID, 3).Value = ID
@@ -474,7 +473,7 @@ End Sub
 ''################################### Start JCatTab Surr _#####################################################
 Function jGetCatID(CatName)
 
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Total = Cells(4, 19).Value
 
 For i = 6 To CInt(5 + Total)
@@ -492,7 +491,7 @@ Function ScanJCats()
 On Error GoTo Start
 Setup.CatChooser.Clear
 Setup.jCatChooser.Clear
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Total = Cells(4, 19).Value
 
 For i = 6 To CInt(5 + Total)
@@ -574,7 +573,7 @@ End Function
 ''################################### Start  OCatTab Surr _#####################################################
 Function oGetCatID(CatName)
 
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Total = Cells(4, 31).Value
 
 For i = 6 To CInt(5 + Total)
@@ -592,7 +591,7 @@ Function ScanOCats()
 On Error GoTo Start
 Setup.OrgChooser.Clear
 Setup.oCatChooser.Clear
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Total = Cells(4, 31).Value
 
 For i = 6 To CInt(5 + Total)
@@ -666,7 +665,7 @@ End Sub
 ''################################### Start OgrTab Surr _#####################################################
 
 Function ScanOrgs()
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 Setup.OrgsTree.Visible = True
 Setup.OrgsTreeHolder.Visible = True
 
@@ -703,7 +702,7 @@ Setup.OrgsTreeHolder.Visible = False
 End Sub
 Function oReadLockedInfo()
 'On Error GoTo Endd
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 
 ID = oID.Value
 
@@ -744,7 +743,7 @@ End Sub
 
 Private Sub OrgsTree_DblClick()
 If OrgsTree.SelectedItem.Key <> "" Then
-    oID.Value = Workers.CutZ(OrgsTree.SelectedItem.Key)
+    oID.Value = CutZ(OrgsTree.SelectedItem.Key)
     OrgsTreeHolder.Visible = False
     End If
 oAdd_Button.Enabled = False
@@ -755,7 +754,7 @@ ScanOrgs
 End Sub
 Private Sub oAdd_Button_Click()
 Read = 1
-Sheets("Каталог").Select
+Sheets("РљР°С‚Р°Р»РѕРі").Select
 ID = Cells(4, 27).Value + InfoOffset
 ProcessOrgs (ID)
 Cells(ID, 25).Value = ID

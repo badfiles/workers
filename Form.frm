@@ -37,114 +37,6 @@ For i = 1 To Len(Line) - 1
 Next
 End Function
 
-Private Sub AvReport_Button_Click()
-On Error GoTo ExceptionControl:
-Windows(WorkersBase).Activate
- Sheets("АвансовыйОтчёт").Select
-Cells(2, 2) = DateTime.Date
-Cells(3, 2) = DateTime.TIME
-
-
-Range("B7:AH200").Clear
-Range("C7:AG7").Select
-Selection.EntireColumn.Hidden = True
-
-Cells(1, 2).Value = "Авансовый отчёт за " & MName(CMonth)
-
- Start = 0
- HiddenCount = 0
- Sheets("Сотрудники").Select
-    
-    Range("B2:F100").Select
-    Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
-        OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
-        DataOption1:=xlSortNormal
-        
-WeHaveWorkers = Cells(1, 2).Value
-
-For i = 3 To WeHaveWorkers + 2
-Sheets("Сотрудники").Select
-If Cells(i, 4).Value = 1 Then HiddenCount = HiddenCount + 1
-If Cells(i, 4).Value = 0 Then
-ii = i - HiddenCount
-
-Sheets(Cells(i, 3).Value).Select
-Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
-AvRepColl.Clear
-  For j = 6 To 276 Step 9
-   If Cells(j, 11).Value <> 0 Then
-     AvRepColl.AddItem (CStr(Cells(j, 1).Value) & "#" & CStr(Cells(j, 11).Value))
-   End If
-  Next j
-
- Sheets("АвансовыйОтчёт").Select
-RepOffset = 4 + ii
-Cells(RepOffset, 2).Value = Namess
-Cells(RepOffset, 34).FormulaR1C1 = "=SUM(RC[-31]:RC[-1])"
- For j = 0 To AvRepColl.ListCount - 1
- Clmn = GetDay(AvRepColl.List(j)) + 2
- Av = GetAv(AvRepColl.List(j))
- 
- Cells(RepOffset, Clmn).Value = Av
- Cells(RepOffset, Clmn).Select
- Selection.EntireColumn.Hidden = False
-
- Next j
-    
-Range(Cells(RepOffset, 2), Cells(RepOffset, 34)).Select
-Selection.NumberFormat = "#,##0.00"
-    With Selection.Borders(xlEdgeLeft)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-    With Selection.Borders(xlEdgeTop)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-    With Selection.Borders(xlEdgeBottom)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-    With Selection.Borders(xlEdgeRight)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-    With Selection.Borders(xlInsideVertical)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-
-If Start Mod 2 = 0 Then
-    With Selection.Interior
-        .ColorIndex = 15
-        .Pattern = xlSolid
-        .PatternColorIndex = xlAutomatic
-    End With
-End If
-
-Start = Start + 1
-
-End If
-Next
-'  Columns("B:AH").EntireColumn.AutoFit
-
-If NoPrintAvReport_Chk.Value = True Then Sheets("АвансовыйОтчёт").PrintOut
-If NoPrintAvReport_Chk.Value = False Then
-     Form.Hide
-     ReportExit = True
-End If
-
-Exit Sub
-ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/AvReport_Button_Click()"
-ErrorForm.Show
-End Sub
-
 Private Sub Block_Button_Click()
 BlockIt.Show
 End Sub
@@ -156,10 +48,10 @@ Orders.CDay_Box.Clear
 Orders.Day_Filter.Clear
 Orders.Day_Filter.AddItem ("Все")
 
-  For i = 1 To MDays(CMonth)
+For i = 1 To MDays(CMonth)
    Orders.CDay_Box.AddItem (i)
    Orders.Day_Filter.AddItem (i)
-  Next
+Next
 Orders.CDay_Box.Value = DateTime.Day(DateTime.Date)
 Orders.Day_Filter.Value = "Все"
 
@@ -184,9 +76,6 @@ Orders.RoundType.AddItem ("в большую сторону")
 Orders.RoundType.AddItem ("в меньшую сторону")
 Orders.RoundType.Value = "в большую сторону"
 
-
-
-
 Orders.Label_FullDate.Caption = GetDayName(Orders.CDay_Box.Value) & ", " & _
                             Orders.CDay_Box.Value & " " & MNameRusFix(CMonth)
 
@@ -196,15 +85,12 @@ Orders.ScanOCats
 FiltersReady = 1
 Orders.Region_Filter.Value = "Все"
 
-Orders.OrgName_Box.Value = _
-            Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Text
-Orders.oID.Value = _
-            CutZ(Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Key)
+Orders.OrgName_Box.Value = Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Text
+Orders.oID.Value = CutZ(Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Key)
 
 Orders.OrgsTreeHolder.Visible = True
 Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Selected = True
-Orders.oCat.Value = _
-            CutZ(Orders.OrgsTree.SelectedItem.Parent.Key)
+Orders.oCat.Value = CutZ(Orders.OrgsTree.SelectedItem.Parent.Key)
 Orders.OrgsTreeHolder.Visible = False
 
 'If LastPerson <> "" Then Workers.NameChooser.Value = LastPerson Else _
@@ -313,10 +199,11 @@ If AdminMode Then
     FileCopy Source, Destination
 
     ArcName = Path & "push.7z"
+    Kill (ArcName)
     ArcFiles = Path & PushBase & " " & Path & "index-c.xls"
     RunCommand (Archiver & " a " & ExchangeKey & " " & ArcName & " " & ArcFiles)
     RunCommand (Archiver & " rn " & ExchangeKey & " " & ArcName & " index-c.xls index.xls")
-    Kill Path & PushBase
+    Kill (Path & PushBase)
     
     If CloseBase Then
         ArcName = Path + "Archive\LastState.7z"
@@ -446,10 +333,8 @@ If AdminMode Then
     Workers.WorkersTreeHolder.Visible = True
     Workers.RealName_Box.Value = ""
     Workers.NameChooser.Value = ""
-    Workers.RealName_Box.Value = _
-            Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Text
-    Workers.NameChooser.Value = _
-            Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Key
+    Workers.RealName_Box.Value = Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Text
+    Workers.NameChooser.Value = Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Key
     Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Selected = True
     Workers.WorkersTreeHolder.Visible = False
     Workers.Show
@@ -501,12 +386,10 @@ ErrorForm.Error_Box.Value = "Form/Workers_Button_Click()"
 ErrorForm.Show
 End Sub
 
-
-
 Private Sub FeeReport_Button_Click()
 On Error GoTo ExceptionControl:
 Windows(WorkersBase).Activate
- Sheets("Отчёт").Select
+Sheets("Отчёт").Select
 
 Selection.Font.Bold = False
 Range("B7:G100").Clear
@@ -515,90 +398,76 @@ Cells(1, 3).Value = "Отчёт по зарплате за  " & MName(CMonth)
 Cells(6, 3).Value = "Остаток за " & MName(LMonth)
 Cells(6, 5).Value = "Выдано за " & MName(CMonth)
 
- Start = 0
- HiddenCount = 0
- Sheets("Сотрудники").Select
-    
-    Range("B2:F100").Select
-    Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
-        OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
-        DataOption1:=xlSortNormal
+Start = False
+HiddenCount = 0
+Sheets("Сотрудники").Select
+Range("B2:F100").Select
+Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
+    OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
+    DataOption1:=xlSortNormal
         
 WeHaveWorkers = Cells(1, 2).Value
 
 For i = 3 To WeHaveWorkers + 2
-Sheets("Сотрудники").Select
-If Cells(i, 4).Value = 1 Then HiddenCount = HiddenCount + 1
-If Cells(i, 4).Value = 0 Then
-ii = i - HiddenCount
-
-Sheets(Cells(i, 3).Value).Select
-
-If Cells(1, 1).Value <> "" Then LastDay = "(по " & Cells(1, 1).Value & "-e число)" _
-Else LastDay = "#нет данных#"
-Leftt = Cells(2, 10).Value
-Income = Cells(3, 10).Value
-outcome = Cells(3, 11).Value
-Balance = Cells(1, 10).Value
-Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
-
- Sheets("Отчёт").Select
-
-Cells(3, 4) = DateTime.Date
-Cells(3, 5) = DateTime.TIME
-RepOffset = 4 + ii
-Cells(RepOffset, 2) = Namess
-Cells(RepOffset, 3) = Leftt
-Cells(RepOffset, 4) = Income
-Cells(RepOffset, 5) = outcome
-Cells(RepOffset, 6) = Balance
-Cells(RepOffset, 7) = LastDay
-Range(Cells(RepOffset, 6), Cells(RepOffset, 6)).Select
-If Balance < 0 Then Selection.Font.Bold = True
-    
-Range(Cells(RepOffset, 2), Cells(RepOffset, 6)).Select
-Selection.NumberFormat = "#,##0.00"
-   
-
-
-    With Selection.Borders(xlEdgeLeft)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-    With Selection.Borders(xlEdgeTop)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-    With Selection.Borders(xlEdgeBottom)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-    With Selection.Borders(xlEdgeRight)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-    With Selection.Borders(xlInsideVertical)
-        .LineStyle = xlDot
-        .Weight = xlThin
-        .ColorIndex = xlAutomatic
-    End With
-
-If Start Mod 2 = 0 Then
-    With Selection.Interior
-        .ColorIndex = 15
-        .Pattern = xlSolid
-        .PatternColorIndex = xlAutomatic
-    End With
-End If
-
-Start = Start + 1
-
-End If
-
+    Sheets("Сотрудники").Select
+    If Cells(i, 4).Value = 1 Then HiddenCount = HiddenCount + 1
+    If Cells(i, 4).Value = 0 Then
+        ii = i - HiddenCount
+        Sheets(Cells(i, 3).Value).Select
+        If Cells(1, 1).Value <> "" Then LastDay = "(по " & Cells(1, 1).Value & "-e число)" Else LastDay = "#нет данных#"
+        Leftt = Cells(2, 10).Value
+        Income = Cells(3, 10).Value
+        outcome = Cells(3, 11).Value
+        Balance = Cells(1, 10).Value
+        Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
+        Sheets("Отчёт").Select
+        Cells(3, 4) = DateTime.Date
+        Cells(3, 5) = DateTime.TIME
+        RepOffset = 4 + ii
+        Cells(RepOffset, 2) = Namess
+        Cells(RepOffset, 3) = Leftt
+        Cells(RepOffset, 4) = Income
+        Cells(RepOffset, 5) = outcome
+        Cells(RepOffset, 6) = Balance
+        Cells(RepOffset, 7) = LastDay
+        Range(Cells(RepOffset, 6), Cells(RepOffset, 6)).Select
+        If Balance < 0 Then Selection.Font.Bold = True
+        Range(Cells(RepOffset, 2), Cells(RepOffset, 6)).Select
+        Selection.NumberFormat = "#,##0.00"
+        With Selection.Borders(xlEdgeLeft)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        With Selection.Borders(xlEdgeTop)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        With Selection.Borders(xlEdgeBottom)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        With Selection.Borders(xlEdgeRight)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        With Selection.Borders(xlInsideVertical)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        If Start Then
+            With Selection.Interior
+                .ColorIndex = 15
+                .Pattern = xlSolid
+                .PatternColorIndex = xlAutomatic
+            End With
+        End If
+        Start = Not Start
+    End If
 Next
 If NoPrintFeeReport_Chk.Value = True Then Sheets("Отчёт").PrintOut
 If NoPrintFeeReport_Chk.Value = False Then
@@ -612,32 +481,115 @@ ErrorForm.Error_Box.Value = "Form/FeeReport_Button_Click()"
 ErrorForm.Show
 End Sub
 
+Private Sub AvReport_Button_Click()
+On Error GoTo ExceptionControl:
+Windows(WorkersBase).Activate
+Sheets("АвансовыйОтчёт").Select
+Cells(2, 2) = DateTime.Date
+Cells(3, 2) = DateTime.TIME
+
+Range("B7:AH200").Clear
+Range("C7:AG7").Select
+Selection.EntireColumn.Hidden = True
+
+Cells(1, 2).Value = "Авансовый отчёт за " & MName(CMonth)
+
+Start = False
+HiddenCount = 0
+Sheets("Сотрудники").Select
+Range("B2:F100").Select
+Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
+    OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
+    DataOption1:=xlSortNormal
+        
+WeHaveWorkers = Cells(1, 2).Value
+For i = 3 To WeHaveWorkers + 2
+    Sheets("Сотрудники").Select
+    If Cells(i, 4).Value = 1 Then HiddenCount = HiddenCount + 1
+    If Cells(i, 4).Value = 0 Then
+        ii = i - HiddenCount
+        Sheets(Cells(i, 3).Value).Select
+        Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
+        AvRepColl.Clear
+        For j = 6 To 276 Step 9
+            If Cells(j, 11).Value <> 0 Then AvRepColl.AddItem (CStr(Cells(j, 1).Value) & "#" & CStr(Cells(j, 11).Value))
+        Next j
+        Sheets("АвансовыйОтчёт").Select
+        RepOffset = 4 + ii
+        Cells(RepOffset, 2).Value = Namess
+        Cells(RepOffset, 34).FormulaR1C1 = "=SUM(RC[-31]:RC[-1])"
+        For j = 0 To AvRepColl.ListCount - 1
+            Clmn = GetDay(AvRepColl.List(j)) + 2
+            Av = GetAv(AvRepColl.List(j))
+            Cells(RepOffset, Clmn).Value = Av
+            Cells(RepOffset, Clmn).Select
+            Selection.EntireColumn.Hidden = False
+        Next j
+    
+        Range(Cells(RepOffset, 2), Cells(RepOffset, 34)).Select
+        Selection.NumberFormat = "#,##0.00"
+        With Selection.Borders(xlEdgeLeft)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        With Selection.Borders(xlEdgeTop)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        With Selection.Borders(xlEdgeBottom)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        With Selection.Borders(xlEdgeRight)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        With Selection.Borders(xlInsideVertical)
+            .LineStyle = xlDot
+            .Weight = xlThin
+            .ColorIndex = xlAutomatic
+        End With
+        If Start Then
+            With Selection.Interior
+                .ColorIndex = 15
+                .Pattern = xlSolid
+                .PatternColorIndex = xlAutomatic
+            End With
+        End If
+        Start = Not Start
+    End If
+Next
+
+If NoPrintAvReport_Chk.Value = True Then Sheets("АвансовыйОтчёт").PrintOut
+If NoPrintAvReport_Chk.Value = False Then
+     Form.Hide
+     ReportExit = True
+End If
+
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Form/AvReport_Button_Click()"
+ErrorForm.Show
+End Sub
+
 Private Sub Setup_Button_Click()
 On Error GoTo ExceptionControl:
 Setup.ScanWorkers (WorkersBase)
-            
 Setup.ScanWCats
 Setup.ScanJobs
 Setup.ScanOrgs
-
 Setup.ScanJCats
 Setup.ScanOCats
-
-Setup.NameChooser.Value = _
-            Setup.WorkersTree.Nodes(CInt(Setup.WorkersTree.Tag) + 1).Key
-Setup.jID.Value = _
-            CutZ(Setup.JobsTree.Nodes(CInt(Setup.JobsTree.Tag) + 1).Key)
-            
-Setup.oID.Value = _
-            CutZ(Setup.OrgsTree.Nodes(CInt(Setup.OrgsTree.Tag) + 1).Key)
-
-
-
+Setup.NameChooser.Value = Setup.WorkersTree.Nodes(CInt(Setup.WorkersTree.Tag) + 1).Key
+Setup.jID.Value = CutZ(Setup.JobsTree.Nodes(CInt(Setup.JobsTree.Tag) + 1).Key)
+Setup.oID.Value = CutZ(Setup.OrgsTree.Nodes(CInt(Setup.OrgsTree.Tag) + 1).Key)
 Setup.cCatChooser.Value = Setup.cCatChooser.List(1)
 Setup.jCatChooser.Value = Setup.jCatChooser.List(1)
 Setup.oCatChooser.Value = Setup.oCatChooser.List(1)
-
-
 Setup.Show
 
 Exit Sub

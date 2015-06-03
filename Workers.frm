@@ -261,7 +261,6 @@ If (ID.Value <> "") And DayTrigger Then
     'Cells(JobPosition(ID.Value) + 287, 6) = Cells(JobPosition(ID.Value) + 287, 6) + AddTime
     'Sheets(NameChooser.Value).Select
 End If
-      
 If CommentTrigger And Comment_Box.Value <> "" Then
     For i = index - Job + 1 To index - Job + Lines
         If (Cells(i, 13).Value = "") Or (i = index - Job + Lines) Then
@@ -272,19 +271,16 @@ If CommentTrigger And Comment_Box.Value <> "" Then
     CommentTrigger = False
     If Not AdminMode Then SetRandomMark
 End If
-
 If PrePay_Box.Value <> Application.DecimalSeparator And PrePay_Box.Value <> "-" And PrePay_Box.Value <> "-" & Application.DecimalSeparator Then Cells(index - Job + 1, 11).Value = PrePay_Box.Value
 If Left_Box.Value <> Application.DecimalSeparator And Left_Box.Value <> "-" And Left_Box.Value <> "-" & Application.DecimalSeparator Then Cells(2, 10).Value = Left_Box.Value
 If Oklad_Box.Value <> Application.DecimalSeparator And Oklad_Box.Value <> "-" And Oklad_Box.Value <> "-" & Application.DecimalSeparator Then Cells(4, 2).Value = Oklad_Box.Value
 If MakeReadOnly_Chk.Value = True Then Cells(3, 1).Value = "RO" Else Cells(3, 1).Value = ""
-
 Cells(index - Job + 1, 2).Select
 If (Cells(index - Job + 1, 2).Value = "") And _
    (Cells(index - Job + 1, 11).Value = "") And _
    (Cells(index - Job + 1, 13).Value = "") Then _
     Selection.EntireRow.Hidden = True _
     Else Selection.EntireRow.Hidden = False
-
 If CInt(Day) > CInt(Cells(1, 1).Value) Then Cells(1, 1).Value = Day
 ReadLockedInfo
 FillDayList (CDay_Box.Value)
@@ -313,7 +309,7 @@ Sheets(NameChooser.Value).Select
 
 Range(Cells(index, 2), Cells(index, 9)).ClearContents
 Cells(index, 14).ClearContents
-If Not AdminMode Then Cells(index, 3) = 4
+If AdminMode Then Cells(index, 3) = 4
 Cells(index, 2).Select
 If (Cells(index, 2).Value = "") And _
     (Cells(index, 11).Value = "") And _
@@ -364,10 +360,8 @@ End If
 Range(Cells(index, 13), Cells(index + Lines - 1, 14)).ClearContents
 Cells(index, 11) = ""
 Cells(index, 10) = ""
-
 Range(Cells(index, 2), Cells(index + Lines - 1, 2)).Select
 Selection.EntireRow.Hidden = True
-
 ReadLockedInfo
 JobName_Box.Value = ""
 ID = ""
@@ -390,9 +384,7 @@ On Error GoTo ExceptionControl:
 If Day <> "" Then
     inRead = True
     index = Job + InfoOffset + Lines * (Day - 1) - 1
-
     Sheets(NameChooser.Value).Select
-
     If Cells(index, 3) > 4 Then ID.Value = Cells(index, 3) Else ID.Value = ""
     JobName_Box.Value = Cells(index, 2).Value
     Rate_Box.Value = Cells(index, 7).Value
@@ -401,13 +393,11 @@ If Day <> "" Then
     Unit.Caption = Cells(index, 5).Value
     Amount_Box.Value = Cells(index, 4).Value
     AltDiam_Box.Value = Cells(index, 14).Value
-
     If Unit.Caption = "" Then Amount_Box.Enabled = False Else Amount_Box.Enabled = True
     If Oklad_Box.Value <> "" And Rate_Box.Value <> "" Then _
         AboveOklad_Chk.Value = True
     If Oklad_Box.Value <> "" And Rate_Box.Value = "" Then _
         AboveOklad_Chk.Value = False
-
     If Amount_Box.Enabled = False Then Time_Box.SetFocus Else Amount_Box.SetFocus
     If JobName_Box.Value = "" Then JobsTree.SetFocus
     inRead = False
@@ -467,13 +457,16 @@ If BonusRate_Box.Value <> "" Then BonusRate_Box.Value = PointFilter(BonusRate_Bo
 End Sub
 
 
-
 Private Sub CollapseJobs_Button_Click()
-p = 1
-Do While p < JobsTree.Nodes.Count
-    JobsTree.Nodes(p).Expanded = False
-    p = p + 1
-Loop
+On Error GoTo ExceptionControl:
+For i = 1 To JobsTree.Nodes.Count
+    JobsTree.Nodes(i).Expanded = False
+Next
+
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Workers/CollapseJobs_Button_Click()"
+ErrorForm.Show
 End Sub
 
 Private Sub Comment_Box_Change()
@@ -496,7 +489,8 @@ End Sub
 Private Sub Div_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
-If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And Amount_Box.Value <> "-" And Amount_Box.Value <> Application.DecimalSeparator And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
+If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And Amount_Box.Value <> "-" And Amount_Box.Value <> Application.DecimalSeparator _
+                                                    And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
     Amount_Box.Value = Round(Amount_Box.Value / 2, 2)
 End If
 If Apply_Button.Enabled = True Then Apply_Button.SetFocus
@@ -511,12 +505,11 @@ Private Sub LastMonth_Label_Click()
 ObjectsRecall
 End Sub
 
-
-
 Private Sub Triv_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
-If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And Amount_Box.Value <> "-" And Amount_Box.Value <> Application.DecimalSeparator And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
+If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And Amount_Box.Value <> "-" And Amount_Box.Value <> Application.DecimalSeparator _
+                                                    And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
     Amount_Box.Value = Round(Amount_Box.Value / 3, 2)
 End If
 If Apply_Button.Enabled = True Then Apply_Button.SetFocus
@@ -566,16 +559,14 @@ End Sub
 
 Sub FillDayList(ByVal Day)
 On Error GoTo ExceptionControl:
-
 If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select
 Records = LastFilled(Day)
 DayList.ListItems.Clear
 Comment_Box.Clear
 Comment_Box.Value = ""
 CommentTrigger = False
-If NameChooser.Value <> "" And Day <> "" And Records <> 0 Then
+If NameChooser.Value <> "" And Day <> "" Then
     TotalTime = 0
-    
     For i = 1 To Lines
         index = i + InfoOffset + Lines * (Day - 1) - 1
         If i <= Records Then
@@ -597,9 +588,7 @@ If NameChooser.Value <> "" And Day <> "" And Records <> 0 Then
         End If
         If Cells(index, 13).Value <> "" Then Comment_Box.AddItem (Cells(index, 13).Value)
     Next i
-    
     index = InfoOffset + Lines * (Day - 1)
- 
     If DayList.ListItems.Count > 0 Then
         CJob_Box.Value = DayList.ListItems.Count + 1
         DayList.ListItems.Add = " "
@@ -612,10 +601,8 @@ If NameChooser.Value <> "" And Day <> "" And Records <> 0 Then
         DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = Cells(index, 10).Value
     End If
 End If
-
 If Records < Lines Then CJob_Box.Value = Records + 1
 If Records > Lines - 1 Then CJob_Box.Value = Lines
-
 If Day <> "" Then
     index = InfoOffset + Lines * (Day - 1)
     If Comment_Box.ListCount > 0 Then
@@ -708,7 +695,6 @@ If (Left(Right(JobName_Box.Value, 4), 1) = "х") Or _
    (Left(Right(JobName_Box.Value, 4), 1) = "x") Or _
    (Left(Right(JobName_Box.Value, 5), 1) = "х") Or _
    (Left(Right(JobName_Box.Value, 5), 1) = "x") Then
-
     AltDiam_Box.Visible = True
     AltDiam_Label.Visible = True
 Else
@@ -726,7 +712,6 @@ End Sub
 Private Sub JobsTree_DblClick()
 ObjectsRecall
 If JobsTree.SelectedItem.Key <> "" Then
-    'JobsTreeHolder.Visible = False
     ID.Value = CutZ(JobsTree.SelectedItem.Key)
 End If
 End Sub
@@ -797,6 +782,7 @@ For i = 0 To CInt(Last)
         Mark i, PrevMarked
     End If
 Next
+
 Exit Sub
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Workers/MakeShitLookGood()"
@@ -818,6 +804,7 @@ If NameChooser.Value <> "" Then
         Cells(3, 1).Select
     End If
 End If
+
 Exit Sub
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Workers/Print_Button_Click()"
@@ -960,30 +947,28 @@ End Sub
 Private Sub ID_Change()
 On Error GoTo ExceptionControl:
 If Not inRead Then
-DayTrigger = True
- If ID.Value <> "" And ID.Value <> 0 Then
-ID = ID.Value
-Sheets("Каталог").Select
-JobName_Box.Value = Cells(ID, 2).Value
-AltDiam_Box.Value = ""
-              Amount_Box.Enabled = True
-                    Unit.Caption = Cells(ID, 4)
- Amount_Box.SetFocus
-     If Unit.Caption = "" Then
-        
-        Amount_Box.Enabled = False
-        Amount_Box.Value = ""
-        Time_Box.SetFocus
-       End If
-   Rate_Box.Value = Cells(ID, 5).Value
-   Rate_Box.Tag = "Amt"
-   If Rate_Box.Value = 0 Then
-   
- Rate_Box.Value = Cells(ID, 6).Value
- Rate_Box.Tag = "Time"
-  Time_Box.SetFocus
+    DayTrigger = True
+    If ID.Value <> "" And ID.Value <> 0 Then
+        ID = ID.Value
+        Sheets("Каталог").Select
+        JobName_Box.Value = Cells(ID, 2).Value
+        AltDiam_Box.Value = ""
+        Amount_Box.Enabled = True
+        Unit.Caption = Cells(ID, 4)
+        Amount_Box.SetFocus
+        If Unit.Caption = "" Then
+            Amount_Box.Enabled = False
+            Amount_Box.Value = ""
+            Time_Box.SetFocus
+        End If
+        Rate_Box.Value = Cells(ID, 5).Value
+        Rate_Box.Tag = "Amt"
+        If Rate_Box.Value = 0 Then
+            Rate_Box.Value = Cells(ID, 6).Value
+            Rate_Box.Tag = "Time"
+            Time_Box.SetFocus
+        End If
     End If
- End If
 End If
 
 Exit Sub
@@ -997,11 +982,8 @@ If NameChooser.Value <> "" Then
     Sheets(NameChooser.Value).Select
     FillControlBox
     ReadLockedInfo
-
     Workers.Caption = RealName_Box.Value & ": " & Label_FullDate.Caption
-
     FillDayList (CDay_Box.Value)
-    
     If NameChooser.Value = MateChooser.Value Or Not AdminMode Then
         MateChooser.Value = ""
         MateName_Box.Value = ""
@@ -1042,7 +1024,6 @@ On Error Resume Next
 ObjectsRecall
 WorkersTreeHolder.Top = -500
 WorkersTreeHolder.Visible = True
-
 Total = WorkersTree.Nodes.Count
 TotalCat = CInt(WorkersTree.Tag)
 If ChosenMate <> 0 Then
@@ -1059,12 +1040,11 @@ If index <= Total - 1 Then
         WorkersTree.Nodes(index + 1).Selected = True
     End If
 End If
-Endd:
 WorkersTreeHolder.Visible = False
 End Sub
 
 Private Sub Workers_Spin_SpinUp()
-On Error GoTo Endd:
+On Error GoTo over:
 ObjectsRecall
 WorkersTreeHolder.Top = -500
 WorkersTreeHolder.Visible = True
@@ -1082,7 +1062,7 @@ If WorkersTree.Nodes(index - 1).Tag <> "Cat" Then
 Else
     WorkersTree.Nodes(index).Selected = True
 End If
-Endd:
+over:
 WorkersTreeHolder.Visible = False
 End Sub
 
@@ -1104,13 +1084,11 @@ If Not AdminMode Then
         TS = TokenSum()
         Sheets("Каталог").Select
         Cells(2, 6).Value = TS
-    
         SaveClose (WorkersBase)
         PullBase = "pull.xls"
         Destination = Path & PullBase
         Source = Path & WorkersBase
         FileCopy Source, Destination
-    
         ArcName = Path & "pull.7z"
         ArcFiles = Path & PullBase
         RunCommand (Archiver & " a -sdel " & ExchangeKey & " " & ArcName & " " & ArcFiles)
@@ -1144,30 +1122,23 @@ End Sub
 Private Sub WorkersTree_DblClick()
 On Error GoTo ExceptionControl:
 If WorkersTree.SelectedItem.Key <> "" And WorkersTree.SelectedItem.Tag <> "Cat" Then
-     
      If ChosenMate = 0 Then
-     
         If Not AdminMode Then
             BlockIt.Pass = WorkersTree.SelectedItem.Tag
             BlockIt.PassOK = False
             BlockIt.Password_Box.SetFocus
             BlockIt.Show
         End If
-     
         If (BlockIt.PassOK) Or (AdminMode) Then
-     
             RealName_Box.Value = WorkersTree.SelectedItem.Text
             NameChooser.Value = WorkersTree.SelectedItem.Key
             Amount_Box.Value = ""
-                    
             If WorkersTree.SelectedItem.Key = MateChooser.Value Then
                 MateChooser.Value = ""
                 MateName_Box.Value = ""
             End If
-            
             WorkersTreeHolder.Visible = False
             DateAndWorker_Frame.Visible = True
-     
             JobsTree.Visible = True
             JobsTree.SetFocus
         Else
