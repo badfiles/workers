@@ -1,4 +1,4 @@
-VERSION 5.00
+﻿VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Form 
    ClientHeight    =   11025
    ClientLeft      =   6045
@@ -77,7 +77,7 @@ Orders.RoundType.AddItem ("в меньшую сторону")
 Orders.RoundType.Value = "в большую сторону"
 
 Orders.Label_FullDate.Caption = GetDayName(Orders.CDay_Box.Value) & ", " & _
-                            Orders.CDay_Box.Value & " " & MNameRusFix(CMonth)
+                            Orders.CDay_Box.Value & " " & MName(CMonth, True)
 
 Orders.ScanOrgs (WorkersBase)
 Orders.ScanJobs
@@ -236,7 +236,6 @@ Windows("Index.xls").Close (SaveChanges = xlDoNotSaveChanges)
 Form.Hide
 Application.Quit
 
-
 Exit Sub
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Form/SaveAndClose_Click()"
@@ -251,6 +250,7 @@ End Sub
 Private Sub SwitchToLastMonth_Click()
 On Error Resume Next
 If LMMode Then
+    LastWorkersDay = 0
     If AdminMode Then
         Windows(WorkersBase).Activate
         DropSensitiveData
@@ -261,15 +261,16 @@ If LMMode Then
     Else
         Windows(WorkersBase).Activate
         ActiveWorkbook.Close SaveChanges:=False
-        Kill Path & WorkersBase
+        Kill (Path & WorkersBase)
     End If
 Else
+    LastWorkersDay = 31
     If Not AdminMode Then
         ArcFiles = "lWorkers.xls"
         ArcName = Path & "lm.7z"
         RunCommand ("ftp -v -s:" & Path & "ftp_client_get_lm " & FtpStorageName)
         RunCommand (Archiver & " e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
-        Kill ArcName
+        Kill (ArcName)
     End If
     Workbooks.Open Filename:=Path & "lWorkers.xls"
 End If
@@ -283,19 +284,22 @@ On Error GoTo ExceptionControl:
 Form.Top = 0
 Form.Left = 0
 Windows(WorkersBase).Activate
+
+ExtChange = True
 Workers.CDay_Box.Clear
 For i = 1 To MDays(CMonth)
     Workers.CDay_Box.AddItem (i)
 Next
-    
 If LastWorkersDay <> 0 Then
     Workers.CDay_Box.Value = LastWorkersDay
 Else
     Workers.CDay_Box.Value = DateTime.Day(DateTime.Date)
 End If
+If Workers.CDay_Box.Value > MDays(CMonth) Then Workers.CDay_Box.Value = MDays(CMonth)
+ExtChange = False
 
-Workers.Label_FullDate.Caption = GetDayName(Workers.CDay_Box.Value) & ", " & _
-                            Workers.CDay_Box.Value & " " & MNameRusFix(CMonth)
+Workers.Label_FullDate.Caption = GetDayName(Workers.CDay_Box.Value) & ", " & Workers.CDay_Box.Value & " " & MName(CMonth, True)
+
 Workers.IncomeLabel.Caption = "Заработано за " & MName(CMonth)
 Workers.OutComeLabel.Caption = "Выдано за " & MName(CMonth)
 Workers.LeftLabel.Caption = "Остаток за " & MName(LMonth)
@@ -398,7 +402,7 @@ Cells(1, 3).Value = "Отчёт по зарплате за  " & MName(CMonth)
 Cells(6, 3).Value = "Остаток за " & MName(LMonth)
 Cells(6, 5).Value = "Выдано за " & MName(CMonth)
 
-Start = False
+MarkLine = True
 HiddenCount = 0
 Sheets("Сотрудники").Select
 Range("B2:F100").Select
@@ -459,14 +463,14 @@ For i = 3 To WeHaveWorkers + 2
             .Weight = xlThin
             .ColorIndex = xlAutomatic
         End With
-        If Start Then
+        If MarkLine Then
             With Selection.Interior
                 .ColorIndex = 15
                 .Pattern = xlSolid
                 .PatternColorIndex = xlAutomatic
             End With
         End If
-        Start = Not Start
+        MarkLine = Not MarkLine
     End If
 Next
 If NoPrintFeeReport_Chk.Value = True Then Sheets("Отчёт").PrintOut
@@ -494,7 +498,7 @@ Selection.EntireColumn.Hidden = True
 
 Cells(1, 2).Value = "Авансовый отчёт за " & MName(CMonth)
 
-Start = False
+MarkLine = True
 HiddenCount = 0
 Sheets("Сотрудники").Select
 Range("B2:F100").Select
@@ -553,14 +557,14 @@ For i = 3 To WeHaveWorkers + 2
             .Weight = xlThin
             .ColorIndex = xlAutomatic
         End With
-        If Start Then
+        If MarkLine Then
             With Selection.Interior
                 .ColorIndex = 15
                 .Pattern = xlSolid
                 .PatternColorIndex = xlAutomatic
             End With
         End If
-        Start = Not Start
+        MarkLine = Not MarkLine
     End If
 Next
 

@@ -1,7 +1,7 @@
-Attribute VB_Name = "Module_MAin"
+﻿Attribute VB_Name = "Module_MAin"
 Public CYear, CMonth, LMonth, NMonth As Integer
 Public WorkersBase, Path, NextMonth As String
-Public AtLast As Boolean
+Public AtLast, ExtChange As Boolean
 Public ReportExit, WorkersExit, LMMode As Boolean
 Public LastWorkersDay As Integer
 Public FiltersReady As Integer
@@ -9,17 +9,14 @@ Public LastPerson As String
 
 Public Const FtpStorageName = "10.10.11.1"
 
-Public Const PinAdmin = "17ED0255"
 'Public Const PinAdmin = "free"
-'Public Const ExchangeKey = "-mhe -pLLHNM8y56vmjthURFnvhnvw9o4y6"
-'Public Const ArcKey = "-mhe -pIUBNMyjbo7ytno4RYDthvklfhg59b"
 Public Const Archiver = "c:\Program Files\7-zip\7z.exe"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
-Public Const Version = "U-3.3.106"
+Public Const Version = "U-3.3.108"
 
-Public Const AdminMode = True
-'Public Const AdminMode = False
+'Public Const AdminMode = True
+Public Const AdminMode = False
 
 Declare Function GetSystemMetrics32 Lib "user32" Alias "GetSystemMetrics" (ByVal nIndex As Long) As Long
 Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
@@ -98,18 +95,9 @@ On Error GoTo ExceptionControl:
 PointFilter = Val
 String_Len = Len(Val)
 LastChar = Right(Val, 1)
-If LastChar = "1" Or _
-   LastChar = "2" Or _
-   LastChar = "3" Or _
-   LastChar = "4" Or _
-   LastChar = "5" Or _
-   LastChar = "6" Or _
-   LastChar = "7" Or _
-   LastChar = "8" Or _
-   LastChar = "9" Or _
-   LastChar = "0" Or _
-   LastChar = "-" Or _
-   LastChar = Application.DecimalSeparator _
+If LastChar = "1" Or LastChar = "2" Or LastChar = "3" Or LastChar = "4" Or LastChar = "5" Or _
+   LastChar = "6" Or LastChar = "7" Or LastChar = "8" Or LastChar = "9" Or LastChar = "0" Or _
+   LastChar = "-" Or LastChar = Application.DecimalSeparator _
 Then
     If (LastChar = "-") Then If (AllowNeg = False) Or (String_Len > 1) Then PointFilter = Left(Val, String_Len - 1)
     If (LastChar = Application.DecimalSeparator) Then _
@@ -169,37 +157,37 @@ Case 7
        DName = "Суббота"
 Case 1
        DName = "Воскресенье"
-Case 0
-       DName = "Ноль"
+Case Else
+       DName = "#Error#"
 End Select
 End Function
 
-Public Function MName(Num) As String
+Public Function MName(ByVal Num As Integer, Optional ByVal rCase As Boolean = False) As String
 Select Case Num
 Case 1
-       MName = "Январь"
+       If rCase Then MName = "Января" Else MName = "Январь"
 Case 2
-       MName = "Февраль"
+       If rCase Then MName = "Февраля" Else MName = "Февраль"
 Case 3
-       MName = "Март"
+       If rCase Then MName = "Марта" Else MName = "Март"
 Case 4
-       MName = "Апрель"
+       If rCase Then MName = "Апреля" Else MName = "Апрель"
 Case 5
-       MName = "Май"
+       If rCase Then MName = "Мая" Else MName = "Май"
 Case 6
-       MName = "Июнь"
+       If rCase Then MName = "Июня" Else MName = "Июнь"
 Case 7
-       MName = "Июль"
+       If rCase Then MName = "Июля" Else MName = "Июль"
 Case 8
-       MName = "Август"
+       If rCase Then MName = "Августя" Else MName = "Август"
 Case 9
-       MName = "Сентябрь"
+       If rCase Then MName = "Сентября" Else MName = "Сентябрь"
 Case 10
-       MName = "Октябрь"
+       If rCase Then MName = "Октября" Else MName = "Октябрь"
 Case 11
-       MName = "Ноябрь"
+       If rCase Then MName = "Ноября" Else MName = "Ноябрь"
 Case 12
-       MName = "Декабрь"
+       If rCase Then MName = "Декабря" Else MName = "Декабрь"
 Case Else
        MName = "#Месяц не определён#"
 End Select
@@ -235,42 +223,12 @@ Case Else
 End Select
 End Function
 
-Public Function MNameRusFix(Num) As String
-Select Case Num
-Case 1
-       MNameRusFix = "Января"
-Case 2
-       MNameRusFix = "Февраля"
-Case 3
-       MNameRusFix = "Марта"
-Case 4
-       MNameRusFix = "Апреля"
-Case 5
-       MNameRusFix = "Мая"
-Case 6
-       MNameRusFix = "Июня"
-Case 7
-       MNameRusFix = "Июля"
-Case 8
-       MNameRusFix = "Августа"
-Case 9
-       MNameRusFix = "Сентября"
-Case 10
-       MNameRusFix = "Октября"
-Case 11
-       MNameRusFix = "Ноября"
-Case 12
-       MNameRusFix = "Декабря"
-Case Else
-       MNameRusFix = "#Месяц не определён#"
-End Select
-End Function
 Public Function MDays(Num) As Integer
 Select Case Num
 Case 1
        MDays = 31
 Case 2
-       MDays = 28
+       If CYear Mod 4 = 0 Then MDays = 29 Else MDays = 28
 Case 3
        MDays = 31
 Case 4
@@ -294,7 +252,6 @@ Case 12
 Case Else
        MDays = 31
 End Select
-If CYear Mod 4 = 0 And Num = 2 Then MDays = 29
 End Function
 
 Public Function IsOpened(Fil) As Boolean

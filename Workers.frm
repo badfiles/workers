@@ -1,4 +1,4 @@
-VERSION 5.00
+﻿VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Workers 
    ClientHeight    =   11025
    ClientLeft      =   45
@@ -154,8 +154,9 @@ On Error GoTo ExceptionControl:
 Sheets(NameChooser.Value).Select
 
 Left_Box.Value = Cells(2, 10).Value
-Income_Box.Value = Cells(3, 10).Value
+Income_Box.Value = Cells(4, 9).Value
 Outcome_Box.Value = Cells(3, 11).Value
+Tax_Box.Value = -Cells(4, 10).Value
 Balance_Box.Value = Cells(1, 10).Value
 Oklad_Box.Value = Cells(4, 2).Value
 
@@ -169,7 +170,7 @@ If Cells(3, 1).Value = "RO" Then
     End If
 Else
     MakeReadOnly_Chk.Value = False
-    If Not AdminMode And LastMonth_Label.Visible = False Then
+    If (Not AdminMode) And (Not LMMode) Then
         Apply_Button.Enabled = True
         Clear_Button.Enabled = True
         Delete_Button.Enabled = True
@@ -409,15 +410,13 @@ ExceptionControl:
 ErrorForm.Error_Box.Value = "Workers/ReadLine()"
 ErrorForm.Show
 End Sub
-Function LastFilled(ByVal Day)
+Function LastFilled(ByVal Day) As Integer
 On Error GoTo ExceptionControl:
-If Day <> "" Then
-    index = InfoOffset + Lines * (Day - 1)
-    LastFilled = 0
-    For i = 1 To Lines
-        If Cells(index + i - 1, 2).Value <> "" Then LastFilled = i
-    Next
-End If
+index = InfoOffset + Lines * (Day - 1)
+LastFilled = 0
+For i = 1 To Lines
+    If Cells(index + i - 1, 2).Value <> "" Then LastFilled = i
+Next
 
 Exit Function
 ExceptionControl:
@@ -490,7 +489,7 @@ Private Sub Div_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
 If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And Amount_Box.Value <> "-" And Amount_Box.Value <> Application.DecimalSeparator _
-                                                    And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
+                          And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
     Amount_Box.Value = Round(Amount_Box.Value / 2, 2)
 End If
 If Apply_Button.Enabled = True Then Apply_Button.SetFocus
@@ -509,7 +508,7 @@ Private Sub Triv_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
 If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And Amount_Box.Value <> "-" And Amount_Box.Value <> Application.DecimalSeparator _
-                                                    And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
+                          And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
     Amount_Box.Value = Round(Amount_Box.Value / 3, 2)
 End If
 If Apply_Button.Enabled = True Then Apply_Button.SetFocus
@@ -542,13 +541,14 @@ End Sub
 Private Sub DayList_DblClick()
 On Error GoTo ExceptionControl:
 ObjectsRecall
-If DayList.ListItems.Count > 0 Then
- 
+Records = DayList.ListItems.Count
+If Records > 0 Then
     If DayList.SelectedItem.Text = "" Then Exit Sub
-
-    If DayList.SelectedItem.Text = " " Then _
-            CJob_Box.Value = CInt(DayList.ListItems.Count - 1) _
-            Else CJob_Box.Value = CInt(DayList.SelectedItem.Text)
+    If (DayList.SelectedItem.Text = " ") Then
+        If (Records - 2) < Lines Then CJob_Box.Value = CInt(Records - 1)
+    Else
+        CJob_Box.Value = CInt(DayList.SelectedItem.Text)
+    End If
 End If
 
 Exit Sub
@@ -559,18 +559,20 @@ End Sub
 
 Sub FillDayList(ByVal Day)
 On Error GoTo ExceptionControl:
-If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select
-Records = LastFilled(Day)
+If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
+If Day = "" Then Exit Sub
 DayList.ListItems.Clear
 Comment_Box.Clear
 Comment_Box.Value = ""
 CommentTrigger = False
-If NameChooser.Value <> "" And Day <> "" Then
+index = InfoOffset + Lines * (Day - 1)
+Records = LastFilled(Day)
+If (Records > 0) Or (Cells(index, 13).Value <> "") Then
     TotalTime = 0
+    PrePay_Box.Value = Cells(index, 11).Value
     For i = 1 To Lines
         index = i + InfoOffset + Lines * (Day - 1) - 1
         If i <= Records Then
-            Position = i
             JobName = Cells(index, 2)
             Amount = Cells(index, 4)
             UnitList = Cells(index, 5)
@@ -578,7 +580,7 @@ If NameChooser.Value <> "" And Day <> "" Then
             TotalTime = TotalTime + TimeList
             RateList = Cells(index, 7)
             Subtotal = Cells(index, 9)
-            DayList.ListItems.Add = Position
+            DayList.ListItems.Add = i
             DayList.ListItems.Item(i).ListSubItems.Add = JobName
             DayList.ListItems.Item(i).ListSubItems.Add = Amount
             DayList.ListItems.Item(i).ListSubItems.Add = UnitList
@@ -588,9 +590,9 @@ If NameChooser.Value <> "" And Day <> "" Then
         End If
         If Cells(index, 13).Value <> "" Then Comment_Box.AddItem (Cells(index, 13).Value)
     Next i
-    index = InfoOffset + Lines * (Day - 1)
     If DayList.ListItems.Count > 0 Then
-        CJob_Box.Value = DayList.ListItems.Count + 1
+        index = InfoOffset + Lines * (Day - 1)
+        'CJob_Box.Value = DayList.ListItems.Count + 1
         DayList.ListItems.Add = " "
         DayList.ListItems.Add = " "
         DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = ""
@@ -600,17 +602,14 @@ If NameChooser.Value <> "" And Day <> "" Then
         DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = "ИТОГО"
         DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = Cells(index, 10).Value
     End If
-End If
-If Records < Lines Then CJob_Box.Value = Records + 1
-If Records > Lines - 1 Then CJob_Box.Value = Lines
-If Day <> "" Then
-    index = InfoOffset + Lines * (Day - 1)
     If Comment_Box.ListCount > 0 Then
         Comment_Box.Value = Comment_Box.List(Comment_Box.ListCount - 1)
         CommentTrigger = False
     End If
-    PrePay_Box.Value = Cells(index, 11).Value
 End If
+If Records < Lines Then CJob_Box.Value = Records + 1
+If Records > Lines - 1 Then CJob_Box.Value = Lines
+
 
 Exit Sub
 ExceptionControl:
@@ -826,16 +825,12 @@ End Sub
 
 Private Sub CDay_Box_Change()
 On Error GoTo ExceptionControl:
-ObjectsRecall
-If NameChooser.Value <> "" Then
+If (NameChooser.Value <> "") And (Not ExtChange) Then
+    ObjectsRecall
     FillDayList (CDay_Box.Value)
-
-    Label_FullDate.Caption = GetDayName(CDay_Box.Value) & ", " & _
-                            CDay_Box.Value & " " & MNameRusFix(CMonth)
-                            
-    Workers.Caption = RealName_Box.Value & ": " & Label_FullDate.Caption
-
-    ReadLine CDay_Box.Value, CJob_Box.Value
+    ReadLine Workers.CDay_Box.Value, Workers.CJob_Box.Value
+    Label_FullDate.Caption = GetDayName(Workers.CDay_Box.Value) & ", " & Workers.CDay_Box.Value & " " & MName(CMonth, True)
+    Workers.Caption = Workers.RealName_Box.Value & ": " & Workers.Label_FullDate.Caption
 End If
 
 Exit Sub
@@ -865,10 +860,10 @@ If NameChooser.Value <> "" And MateChooser.Value <> "" Then
         If Cells(index, 2).Value <> "" Then
             If Not AdminMode Then
                 Sheets(NameChooser.Value).Select
-                b = MsgBox(MateName_Box & " уже записался на " & CDay_Box.Value & " " & MNameRusFix(CMonth) & ".", vbOKOnly, "Копирование отменено")
+                b = MsgBox(MateName_Box & " уже записался на " & CDay_Box.Value & " " & MName(CMonth, True) & ".", vbOKOnly, "Копирование отменено")
                 Exit Sub
             Else
-                InsureForm.Msg_label.Caption = "Все записи у " & MateName_Box & " за " & CDay_Box.Value & " " & MNameRusFix(CMonth) & " будут перезаписаны. Выполнить копирование?"
+                InsureForm.Msg_label.Caption = "Все записи у " & MateName_Box & " за " & CDay_Box.Value & " " & MName(CMonth, True) & " будут перезаписаны. Выполнить копирование?"
                 InsureForm.NoButton.SetFocus
                 InsureForm.Show
                 If InsureForm.OK.Value = True Then
@@ -930,7 +925,7 @@ Private Sub Clear_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
 If Not AdminMode Then
-    InsureForm.Msg_label.Caption = "Вы действительно хотите стереть все записи за " & CDay_Box.Value & " " & MNameRusFix(CMonth) & "?"
+    InsureForm.Msg_label.Caption = "Вы действительно хотите стереть все записи за " & CDay_Box.Value & " " & MName(CMonth, True) & "?"
     InsureForm.NoButton.SetFocus
     InsureForm.Show
     If InsureForm.OK.Value = True Then ClearDay (CDay_Box.Value)
@@ -1109,6 +1104,7 @@ Private Sub Logout_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
 RealName_Box.Value = ""
+PrePay_Box.Value = ""
 NameChooser.Value = "Образец"
 NameChooser.Value = ""
 
