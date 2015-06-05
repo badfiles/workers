@@ -6,6 +6,8 @@ Public ReportExit, WorkersExit, LMMode As Boolean
 Public LastWorkersDay As Integer
 Public FiltersReady As Integer
 Public LastPerson As String
+Public Const InfoOffset = 6
+Public Const Lines = 9
 
 Public Const FtpStorageName = "10.10.11.1"
 
@@ -13,10 +15,10 @@ Public Const FtpStorageName = "10.10.11.1"
 Public Const Archiver = "c:\Program Files\7-zip\7z.exe"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
-Public Const Version = "U-3.3.108"
+Public Const Version = "U-3.3.109"
 
-'Public Const AdminMode = True
-Public Const AdminMode = False
+Public Const AdminMode = True
+'Public Const AdminMode = False
 
 Declare Function GetSystemMetrics32 Lib "user32" Alias "GetSystemMetrics" (ByVal nIndex As Long) As Long
 Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
@@ -110,6 +112,15 @@ End If
 Exit Function
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Main/PointFilter()"
+ErrorForm.Show
+End Function
+Public Function CheckNumber(ByVal Str As String) As Boolean
+On Error GoTo ExceptionControl:
+If (Str <> Application.DecimalSeparator) And (Str <> "-") And (Str <> "-" & Application.DecimalSeparator) Then CheckNumber = True Else CheckNumber = False
+
+Exit Function
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Main/CheckNumber()"
 ErrorForm.Show
 End Function
 
@@ -294,7 +305,7 @@ ErrorForm.Show
 End Function
 Public Sub PullOnServer()
 On Error GoTo ExceptionControl:
-Dim PushArray(1 To 284), PullArray(1 To 284), CommentArray(1 To 284) As Boolean
+Dim PushArray(1 To Lines * 31 + InfoOffset - 1), PullArray(1 To Lines * 31 + InfoOffset - 1), CommentArray(1 To Lines * 31 + InfoOffset - 1) As Boolean
 
 PullBase = "pull.xls"
 Sheets("Каталог").Select
@@ -331,7 +342,7 @@ Else
                         Cells(2, 1).Value = PullToken
                         Cells(1, 1).Value = LastDay
                     
-                        For j = 6 To 284
+                        For j = InfoOffset To Lines * 31 + InfoOffset - 1
                             PushArray(j) = False
                             If Cells(j, 3).Value = "" Then PushArray(j) = True
                         Next j
@@ -341,14 +352,14 @@ Else
                         Windows(PullBase).Activate
                         Sheets(i).Select
                            
-                        For j = 6 To 284
+                        For j = InfoOffset To Lines * 31 + InfoOffset - 1
                            PullArray(j) = False
                            CommentArray(j) = False
                            If Cells(j, 2).Value <> "" Then PullArray(j) = True
                            If Cells(j, 13).Value <> "" Then CommentArray(j) = True
                         Next j
                      
-                        For j = 6 To 284
+                        For j = InfoOffset To Lines * 31 + InfoOffset - 1
                            If (PushArray(j) And PullArray(j)) = True Then
                                 Windows(PullBase).Activate
                                 Sheets(i).Select

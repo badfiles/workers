@@ -15,8 +15,6 @@ Attribute VB_Exposed = False
 Dim inRead, CommentTrigger, DayTrigger As Boolean
 Dim ChosenMate As Integer
 Dim TestNode As Node
-Const InfoOffset = 6
-Const Lines = 9
 Sub ObjectsRecall()
 WorkersTreeHolder.Visible = False
 JobsTree.Visible = True
@@ -124,7 +122,7 @@ On Error GoTo ExceptionControl:
 Sheets(NameChooser.Value).Activate
 ControlList.ListItems.Clear
    
-For i = InfoOffset To 276 Step Lines
+For i = InfoOffset To InfoOffset + 31 * Lines - Lines Step Lines
     If (Cells(i, 10).Value <> 0) Or (Cells(i, 11).Value <> 0) Or (Cells(i, 13).Value <> "") Then
         Dat = Cells(i, 1).Value
         Fee = Cells(i, 10).Value
@@ -201,8 +199,7 @@ End Sub
 
 Sub RecordInfo(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
-If NameChooser.Value = "" Then Exit Sub
-Sheets(NameChooser.Value).Select
+If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
 index = Job + InfoOffset + Lines * (Day - 1) - 1
 If (ID.Value <> "") And DayTrigger Then
     Cells(index - Job + 1, 10).FormulaR1C1 = "=SUM(RC[-1]:R[8]C[-1])"
@@ -228,14 +225,14 @@ If (ID.Value <> "") And DayTrigger Then
     End If
     
     Cells(index, 3).Value = ID.Value
-    If Amount_Box.Value <> Application.DecimalSeparator And Amount_Box.Value <> "-" And Amount_Box.Value <> "-" & Application.DecimalSeparator Then Cells(index, 4).Value = Amount_Box.Value
+    If CheckNumber(Amount_Box.Value) Then Cells(index, 4).Value = Amount_Box.Value
     Cells(index, 5).Value = Unit.Caption
-    If Time_Box.Value <> Application.DecimalSeparator And Time_Box.Value <> "-" And Time_Box.Value <> "-" & Application.DecimalSeparator Then Cells(index, 6).Value = Time_Box.Value
+    If CheckNumber(Time_Box.Value) Then Cells(index, 6).Value = Time_Box.Value
     
     If Not AdminMode Then SetRandomMark
     
     If Oklad_Box = "" Or AboveOklad_Chk.Value = True Then
-        If Rate_Box.Value <> Application.DecimalSeparator And Rate_Box.Value <> "-" And Rate_Box.Value <> "-" & Application.DecimalSeparator Then Cells(index, 7).Value = Rate_Box.Value
+        If CheckNumber(Rate_Box.Value) Then Cells(index, 7).Value = Rate_Box.Value
     Else
         Cells(index, 7).ClearContents
     End If
@@ -272,9 +269,9 @@ If CommentTrigger And Comment_Box.Value <> "" Then
     CommentTrigger = False
     If Not AdminMode Then SetRandomMark
 End If
-If PrePay_Box.Value <> Application.DecimalSeparator And PrePay_Box.Value <> "-" And PrePay_Box.Value <> "-" & Application.DecimalSeparator Then Cells(index - Job + 1, 11).Value = PrePay_Box.Value
-If Left_Box.Value <> Application.DecimalSeparator And Left_Box.Value <> "-" And Left_Box.Value <> "-" & Application.DecimalSeparator Then Cells(2, 10).Value = Left_Box.Value
-If Oklad_Box.Value <> Application.DecimalSeparator And Oklad_Box.Value <> "-" And Oklad_Box.Value <> "-" & Application.DecimalSeparator Then Cells(4, 2).Value = Oklad_Box.Value
+If CheckNumber(PrePay_Box.Value) Then Cells(index - Job + 1, 11).Value = PrePay_Box.Value
+If CheckNumber(Left_Box.Value) Then Cells(2, 10).Value = Left_Box.Value
+If CheckNumber(Oklad_Box.Value) Then Cells(4, 2).Value = Oklad_Box.Value
 If MakeReadOnly_Chk.Value = True Then Cells(3, 1).Value = "RO" Else Cells(3, 1).Value = ""
 Cells(index - Job + 1, 2).Select
 If (Cells(index - Job + 1, 2).Value = "") And _
@@ -297,9 +294,8 @@ ErrorForm.Show
 End Sub
 Sub DeleteInfo(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
-If NameChooser.Value = "" Then Exit Sub
+If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
 index = Job + InfoOffset + Lines * (Day - 1) - 1
-Sheets(NameChooser.Value).Select
 
 'OldAmount = Cells(index, 4)
 'OldId = Cells(index, 3)
@@ -336,9 +332,8 @@ End Sub
 
 Sub ClearDay(ByVal Day)
 On Error GoTo ExceptionControl:
-If NameChooser.Value = "" Then Exit Sub
+If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
 index = InfoOffset + Lines * (Day - 1)
-Sheets(NameChooser.Value).Select
 If CInt(Cells(1, 1)) = Day Then Cells(1, 1).ClearContents
 For i = 0 To Lines - 1
     If (AdminMode) And (Cells(index + i, 3) <> "") Then Cells(index + i, 3) = 4
@@ -382,28 +377,26 @@ ErrorForm.Show
 End Sub
 Sub ReadLine(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
-If Day <> "" Then
-    inRead = True
-    index = Job + InfoOffset + Lines * (Day - 1) - 1
-    Sheets(NameChooser.Value).Select
-    If Cells(index, 3) > 4 Then ID.Value = Cells(index, 3) Else ID.Value = ""
-    JobName_Box.Value = Cells(index, 2).Value
-    Rate_Box.Value = Cells(index, 7).Value
-    Rate_Box.Tag = ""
-    Time_Box.Value = Cells(index, 6).Value
-    Unit.Caption = Cells(index, 5).Value
-    Amount_Box.Value = Cells(index, 4).Value
-    AltDiam_Box.Value = Cells(index, 14).Value
-    If Unit.Caption = "" Then Amount_Box.Enabled = False Else Amount_Box.Enabled = True
-    If Oklad_Box.Value <> "" And Rate_Box.Value <> "" Then _
-        AboveOklad_Chk.Value = True
-    If Oklad_Box.Value <> "" And Rate_Box.Value = "" Then _
-        AboveOklad_Chk.Value = False
-    If Amount_Box.Enabled = False Then Time_Box.SetFocus Else Amount_Box.SetFocus
-    If JobName_Box.Value = "" Then JobsTree.SetFocus
-    inRead = False
-    DayTrigger = False
-End If
+If Day = "" Or NameChooser.Value = "" Then Exit Sub
+    
+inRead = True
+index = Job + InfoOffset + Lines * (Day - 1) - 1
+Sheets(NameChooser.Value).Select
+If Cells(index, 3) > 4 Then ID.Value = Cells(index, 3) Else ID.Value = ""
+JobName_Box.Value = Cells(index, 2).Value
+Rate_Box.Value = Cells(index, 7).Value
+Rate_Box.Tag = ""
+Time_Box.Value = Cells(index, 6).Value
+Unit.Caption = Cells(index, 5).Value
+Amount_Box.Value = Cells(index, 4).Value
+AltDiam_Box.Value = Cells(index, 14).Value
+If Unit.Caption = "" Then Amount_Box.Enabled = False Else Amount_Box.Enabled = True
+If Oklad_Box.Value <> "" And Rate_Box.Value <> "" Then AboveOklad_Chk.Value = True
+If Oklad_Box.Value <> "" And Rate_Box.Value = "" Then AboveOklad_Chk.Value = False
+If Amount_Box.Enabled = False Then Time_Box.SetFocus Else Amount_Box.SetFocus
+If JobName_Box.Value = "" Then JobsTree.SetFocus
+inRead = False
+DayTrigger = False
 
 Exit Sub
 ExceptionControl:
@@ -485,13 +478,14 @@ ObjectsRecall
 DeleteInfo CDay_Box.Value, CJob_Box.Value
 End Sub
 
+Private Sub LastMonth_Label_Click()
+ObjectsRecall
+End Sub
+
 Private Sub Div_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
-If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And Amount_Box.Value <> "-" And Amount_Box.Value <> Application.DecimalSeparator _
-                          And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
-    Amount_Box.Value = Round(Amount_Box.Value / 2, 2)
-End If
+If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And CheckNumber(Amount_Box.Value) Then Amount_Box.Value = Round(Amount_Box.Value / 2, 2)
 If Apply_Button.Enabled = True Then Apply_Button.SetFocus
 
 Exit Sub
@@ -500,17 +494,10 @@ ErrorForm.Error_Box.Value = "Workers/Div_Button_Click()"
 ErrorForm.Show
 End Sub
 
-Private Sub LastMonth_Label_Click()
-ObjectsRecall
-End Sub
-
 Private Sub Triv_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
-If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And Amount_Box.Value <> "-" And Amount_Box.Value <> Application.DecimalSeparator _
-                          And Amount_Box.Value <> "-" & Application.DecimalSeparator Then
-    Amount_Box.Value = Round(Amount_Box.Value / 3, 2)
-End If
+If Amount_Box.Value <> "" And Amount_Box.Value <> 0 And CheckNumber(Amount_Box.Value) Then Amount_Box.Value = Round(Amount_Box.Value / 3, 2)
 If Apply_Button.Enabled = True Then Apply_Button.SetFocus
 
 Exit Sub
@@ -523,7 +510,6 @@ Private Sub SelectUpdatesOnly_Change()
 ObjectsRecall
 ScanWorkers
 End Sub
-
 
 Private Sub ControlList_DblClick()
 On Error GoTo ExceptionControl:
@@ -545,7 +531,7 @@ Records = DayList.ListItems.Count
 If Records > 0 Then
     If DayList.SelectedItem.Text = "" Then Exit Sub
     If (DayList.SelectedItem.Text = " ") Then
-        If (Records - 2) < Lines Then CJob_Box.Value = CInt(Records - 1)
+        If (Records - 2) < Lines Then CJob_Box.Value = Records - 1
     Else
         CJob_Box.Value = CInt(DayList.SelectedItem.Text)
     End If
@@ -592,7 +578,6 @@ If (Records > 0) Or (Cells(index, 13).Value <> "") Then
     Next i
     If DayList.ListItems.Count > 0 Then
         index = InfoOffset + Lines * (Day - 1)
-        'CJob_Box.Value = DayList.ListItems.Count + 1
         DayList.ListItems.Add = " "
         DayList.ListItems.Add = " "
         DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = ""
@@ -607,6 +592,7 @@ If (Records > 0) Or (Cells(index, 13).Value <> "") Then
         CommentTrigger = False
     End If
 End If
+
 If Records < Lines Then CJob_Box.Value = Records + 1
 If Records > Lines - 1 Then CJob_Box.Value = Lines
 
@@ -867,7 +853,7 @@ If NameChooser.Value <> "" And MateChooser.Value <> "" Then
                 InsureForm.NoButton.SetFocus
                 InsureForm.Show
                 If InsureForm.OK.Value = True Then
-                    i = Lines + 1
+                    Exit For
                 Else
                     Sheets(NameChooser.Value).Select
                     Exit Sub

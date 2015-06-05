@@ -26,16 +26,6 @@ If Side = -1 Then
 End If
 End Function
 
-Function GetAv(Line)
-For i = 1 To Len(Line) - 1
-    If Mid(Line, i, 1) = "#" Then GetAv = Right(Line, Len(Line) - i)
-Next
-End Function
-Function GetDay(Line) As Integer
-For i = 1 To Len(Line) - 1
-    If Mid(Line, i, 1) = "#" Then GetDay = CInt(Left(Line, i - 1))
-Next
-End Function
 
 Private Sub Block_Button_Click()
 BlockIt.Show
@@ -405,7 +395,7 @@ Cells(6, 5).Value = "Выдано за " & MName(CMonth)
 MarkLine = True
 HiddenCount = 0
 Sheets("Сотрудники").Select
-Range("B2:F100").Select
+Range("A3:G100").Select
 Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
     OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
     DataOption1:=xlSortNormal
@@ -414,8 +404,9 @@ WeHaveWorkers = Cells(1, 2).Value
 
 For i = 3 To WeHaveWorkers + 2
     Sheets("Сотрудники").Select
-    If Cells(i, 4).Value = 1 Then HiddenCount = HiddenCount + 1
-    If Cells(i, 4).Value = 0 Then
+    If Cells(i, 4).Value = 1 Then
+        HiddenCount = HiddenCount + 1
+    Else
         ii = i - HiddenCount
         Sheets(Cells(i, 3).Value).Select
         If Cells(1, 1).Value <> "" Then LastDay = "(по " & Cells(1, 1).Value & "-e число)" Else LastDay = "#нет данных#"
@@ -438,45 +429,16 @@ For i = 3 To WeHaveWorkers + 2
         If Balance < 0 Then Selection.Font.Bold = True
         Range(Cells(RepOffset, 2), Cells(RepOffset, 6)).Select
         Selection.NumberFormat = "#,##0.00"
-        With Selection.Borders(xlEdgeLeft)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        With Selection.Borders(xlEdgeTop)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        With Selection.Borders(xlEdgeBottom)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        With Selection.Borders(xlEdgeRight)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        With Selection.Borders(xlInsideVertical)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        If MarkLine Then
-            With Selection.Interior
-                .ColorIndex = 15
-                .Pattern = xlSolid
-                .PatternColorIndex = xlAutomatic
-            End With
-        End If
+        FillAndBorders (MarkLine)
         MarkLine = Not MarkLine
     End If
 Next
-If NoPrintFeeReport_Chk.Value = True Then Sheets("Отчёт").PrintOut
-If NoPrintFeeReport_Chk.Value = False Then
-     Form.Hide
-     ReportExit = True
+
+If NoPrintFeeReport_Chk.Value = True Then
+    Sheets("Отчёт").PrintOut
+Else
+    Form.Hide
+    ReportExit = True
 End If
 
 Exit Sub
@@ -486,6 +448,7 @@ ErrorForm.Show
 End Sub
 
 Private Sub AvReport_Button_Click()
+Dim Day(1 To 31) As Integer, Av(1 To 31) As String
 On Error GoTo ExceptionControl:
 Windows(WorkersBase).Activate
 Sheets("АвансовыйОтчёт").Select
@@ -501,75 +464,49 @@ Cells(1, 2).Value = "Авансовый отчёт за " & MName(CMonth)
 MarkLine = True
 HiddenCount = 0
 Sheets("Сотрудники").Select
-Range("B2:F100").Select
+Range("A3:G100").Select
 Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
     OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
     DataOption1:=xlSortNormal
-        
+
 WeHaveWorkers = Cells(1, 2).Value
 For i = 3 To WeHaveWorkers + 2
     Sheets("Сотрудники").Select
-    If Cells(i, 4).Value = 1 Then HiddenCount = HiddenCount + 1
-    If Cells(i, 4).Value = 0 Then
+    If Cells(i, 4).Value = 1 Then
+        HiddenCount = HiddenCount + 1
+    Else
         ii = i - HiddenCount
         Sheets(Cells(i, 3).Value).Select
         Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
-        AvRepColl.Clear
-        For j = 6 To 276 Step 9
-            If Cells(j, 11).Value <> 0 Then AvRepColl.AddItem (CStr(Cells(j, 1).Value) & "#" & CStr(Cells(j, 11).Value))
+        p = 0
+        For j = InfoOffset To InfoOffset + 31 * Lines - Lines Step Lines
+            If Cells(j, 11).Value <> 0 Then
+                p = p + 1
+                Day(p) = Cells(j, 1).Value
+                Av(p) = CStr(Cells(j, 11).Value)
+            End If
         Next j
         Sheets("АвансовыйОтчёт").Select
         RepOffset = 4 + ii
         Cells(RepOffset, 2).Value = Namess
         Cells(RepOffset, 34).FormulaR1C1 = "=SUM(RC[-31]:RC[-1])"
-        For j = 0 To AvRepColl.ListCount - 1
-            Clmn = GetDay(AvRepColl.List(j)) + 2
-            Av = GetAv(AvRepColl.List(j))
-            Cells(RepOffset, Clmn).Value = Av
+        For j = 1 To p
+            Clmn = Day(j) + 2
+            Cells(RepOffset, Clmn).Value = Av(j)
             Cells(RepOffset, Clmn).Select
             Selection.EntireColumn.Hidden = False
         Next j
     
         Range(Cells(RepOffset, 2), Cells(RepOffset, 34)).Select
         Selection.NumberFormat = "#,##0.00"
-        With Selection.Borders(xlEdgeLeft)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        With Selection.Borders(xlEdgeTop)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        With Selection.Borders(xlEdgeBottom)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        With Selection.Borders(xlEdgeRight)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        With Selection.Borders(xlInsideVertical)
-            .LineStyle = xlDot
-            .Weight = xlThin
-            .ColorIndex = xlAutomatic
-        End With
-        If MarkLine Then
-            With Selection.Interior
-                .ColorIndex = 15
-                .Pattern = xlSolid
-                .PatternColorIndex = xlAutomatic
-            End With
-        End If
+        FillAndBorders (MarkLine)
         MarkLine = Not MarkLine
     End If
 Next
 
-If NoPrintAvReport_Chk.Value = True Then Sheets("АвансовыйОтчёт").PrintOut
-If NoPrintAvReport_Chk.Value = False Then
+If NoPrintAvReport_Chk.Value = True Then
+    Sheets("АвансовыйОтчёт").PrintOut
+Else
      Form.Hide
      ReportExit = True
 End If
@@ -578,6 +515,40 @@ Exit Sub
 ExceptionControl:
 ErrorForm.Error_Box.Value = "Form/AvReport_Button_Click()"
 ErrorForm.Show
+End Sub
+Private Sub FillAndBorders(ByVal MarkLine As Boolean)
+With Selection.Borders(xlEdgeLeft)
+    .LineStyle = xlDot
+    .Weight = xlThin
+    .ColorIndex = xlAutomatic
+End With
+With Selection.Borders(xlEdgeTop)
+    .LineStyle = xlDot
+    .Weight = xlThin
+    .ColorIndex = xlAutomatic
+End With
+With Selection.Borders(xlEdgeBottom)
+    .LineStyle = xlDot
+    .Weight = xlThin
+    .ColorIndex = xlAutomatic
+End With
+With Selection.Borders(xlEdgeRight)
+    .LineStyle = xlDot
+    .Weight = xlThin
+    .ColorIndex = xlAutomatic
+End With
+With Selection.Borders(xlInsideVertical)
+    .LineStyle = xlDot
+    .Weight = xlThin
+    .ColorIndex = xlAutomatic
+End With
+If MarkLine Then
+    With Selection.Interior
+        .ColorIndex = 15
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+    End With
+End If
 End Sub
 
 Private Sub Setup_Button_Click()
