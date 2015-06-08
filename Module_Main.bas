@@ -3,19 +3,21 @@ Public CYear, CMonth, LMonth, NMonth As Integer
 Public WorkersBase, Path, NextMonth As String
 Public AtLast, ExtChange As Boolean
 Public ReportExit, WorkersExit, LMMode As Boolean
-Public LastWorkersDay As Integer
-Public FiltersReady As Integer
+Public LastWorkersDay, FiltersReady As Integer
 Public LastPerson As String
+
 Public Const InfoOffset = 6
 Public Const Lines = 9
-
-Public Const FtpStorageName = "10.10.11.1"
+Public Const FirstWorkersSheet = 9
 
 'Public Const PinAdmin = "free"
+
 Public Const Archiver = "c:\Program Files\7-zip\7z.exe"
+Public Const FtpStorageName = "10.10.11.1"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
-Public Const Version = "U-3.3.109"
+
+Public Const Version = "U-3.3.110"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -82,7 +84,7 @@ End Function
 Public Function TokenSum() As Long
 On Error GoTo ExceptionControl:
 TokenSum = 0
-For i = 9 To ActiveWorkbook.Sheets.Count
+For i = FirstWorkersSheet To ActiveWorkbook.Sheets.Count
     Sheets(i).Select
     TokenSum = Cells(2, 1).Value + TokenSum
 Next
@@ -326,7 +328,7 @@ If (PullYear <> CYear) Or (PullMonth <> CMonth) Then
     Windows(WorkersBase).Activate
 Else
     If ThisMonthTokens <> PulledTokens Then
-            For i = 9 To ActiveWorkbook.Sheets.Count
+            For i = FirstWorkersSheet To ActiveWorkbook.Sheets.Count
                 Windows(PullBase).Activate
                 Sheets(i).Select
                 PullToken = Cells(2, 1).Value

@@ -142,7 +142,7 @@ If InsureForm.OK.Value = True Then
     Cells(1, 6).Value = Cells(2, 6).Value
     Cells(2, 6).Value = ""
     
-    For i = 9 To ActiveWorkbook.Sheets.Count
+    For i = FirstWorkersSheet To ActiveWorkbook.Sheets.Count
         Sheets(i).Select
         Cells(2, 10).Value = Cells(1, 10).Value
         Cells(1, 1).ClearContents
@@ -407,7 +407,6 @@ For i = 3 To WeHaveWorkers + 2
     If Cells(i, 4).Value = 1 Then
         HiddenCount = HiddenCount + 1
     Else
-        ii = i - HiddenCount
         Sheets(Cells(i, 3).Value).Select
         If Cells(1, 1).Value <> "" Then LastDay = "(по " & Cells(1, 1).Value & "-e число)" Else LastDay = "#нет данных#"
         Leftt = Cells(2, 10).Value
@@ -418,7 +417,7 @@ For i = 3 To WeHaveWorkers + 2
         Sheets("Отчёт").Select
         Cells(3, 4) = DateTime.Date
         Cells(3, 5) = DateTime.TIME
-        RepOffset = 4 + ii
+        RepOffset = 4 + i - HiddenCount
         Cells(RepOffset, 2) = Namess
         Cells(RepOffset, 3) = Leftt
         Cells(RepOffset, 4) = Income
@@ -428,7 +427,6 @@ For i = 3 To WeHaveWorkers + 2
         Range(Cells(RepOffset, 6), Cells(RepOffset, 6)).Select
         If Balance < 0 Then Selection.Font.Bold = True
         Range(Cells(RepOffset, 2), Cells(RepOffset, 6)).Select
-        Selection.NumberFormat = "#,##0.00"
         FillAndBorders (MarkLine)
         MarkLine = Not MarkLine
     End If
@@ -475,7 +473,6 @@ For i = 3 To WeHaveWorkers + 2
     If Cells(i, 4).Value = 1 Then
         HiddenCount = HiddenCount + 1
     Else
-        ii = i - HiddenCount
         Sheets(Cells(i, 3).Value).Select
         Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
         p = 0
@@ -487,18 +484,16 @@ For i = 3 To WeHaveWorkers + 2
             End If
         Next j
         Sheets("АвансовыйОтчёт").Select
-        RepOffset = 4 + ii
+        RepOffset = 4 + i - HiddenCount
         Cells(RepOffset, 2).Value = Namess
         Cells(RepOffset, 34).FormulaR1C1 = "=SUM(RC[-31]:RC[-1])"
         For j = 1 To p
-            Clmn = Day(j) + 2
-            Cells(RepOffset, Clmn).Value = Av(j)
-            Cells(RepOffset, Clmn).Select
+            Cells(RepOffset, Day(j) + 2).Value = Av(j)
+            Cells(RepOffset, Day(j) + 2).Select
             Selection.EntireColumn.Hidden = False
         Next j
     
         Range(Cells(RepOffset, 2), Cells(RepOffset, 34)).Select
-        Selection.NumberFormat = "#,##0.00"
         FillAndBorders (MarkLine)
         MarkLine = Not MarkLine
     End If
@@ -517,6 +512,7 @@ ErrorForm.Error_Box.Value = "Form/AvReport_Button_Click()"
 ErrorForm.Show
 End Sub
 Private Sub FillAndBorders(ByVal MarkLine As Boolean)
+Selection.NumberFormat = "#,##0.00"
 With Selection.Borders(xlEdgeLeft)
     .LineStyle = xlDot
     .Weight = xlThin
