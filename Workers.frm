@@ -66,8 +66,8 @@ Workers.WorkersTreeHolder.Visible = False
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/ScanWorkers()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/ScanWorkers()"
+Exception.Show
 End Sub
 Sub ScanJobs()
 On Error GoTo ExceptionControl:
@@ -116,15 +116,14 @@ Workers.JobsTree.Tag = TotalCats
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/ScanJobs()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/ScanJobs()"
+Exception.Show
 End Sub
 
 Sub FillControlList()
 On Error GoTo ExceptionControl:
 Sheets(NameChooser.Value).Activate
 ControlList.ListItems.Clear
-   
 For i = InfoOffset To InfoOffset + 31 * Lines - Lines Step Lines
     If (Cells(i, 10).Value <> 0) Or (Cells(i, 11).Value <> 0) Or (Cells(i, 13).Value <> "") Then
         Dat = Cells(i, 1).Value
@@ -137,24 +136,26 @@ For i = InfoOffset To InfoOffset + 31 * Lines - Lines Step Lines
             Next j
         End If
         If Len(Dat) = 1 Then Dat = "0" & Dat
-        ControlList.ListItems.Add = Dat
-        ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems.Add = Fee
-        ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems.Add = Pre
-        ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems.Add = Comment
-        If CInt(Dat) = CDay_Box.Value Then
-            ControlList.ListItems.Item(ControlList.ListItems.Count).ForeColor = &HFF&
-            For j = 1 To ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems.Count
-                ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems(j).ForeColor = &HFF&
-            Next j
-        End If
+        With ControlList
+            .ListItems.Add = Dat
+            .ListItems.Item(.ListItems.Count).ListSubItems.Add = Fee
+            .ListItems.Item(.ListItems.Count).ListSubItems.Add = Pre
+            .ListItems.Item(.ListItems.Count).ListSubItems.Add = Comment
+            If CInt(Dat) = CDay_Box.Value Then
+                .ListItems.Item(.ListItems.Count).ForeColor = &HFF&
+                For j = 1 To ControlList.ListItems.Item(.ListItems.Count).ListSubItems.Count
+                    .ListItems.Item(.ListItems.Count).ListSubItems(j).ForeColor = &HFF&
+                Next j
+            End If
+        End With
     End If
 Next i
 ControlList.Refresh
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/FillControlList()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/FillControlList()"
+Exception.Show
 End Sub
 
 Sub ReadLockedInfo()
@@ -191,8 +192,8 @@ If Balance_Box.Value >= 0 Then Balance_Label.ForeColor = &H8000& Else Balance_La
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/ReadLockedInfo()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/ReadLockedInfo()"
+Exception.Show
 End Sub
 
 Sub SetRandomMark()
@@ -202,8 +203,8 @@ Cells(2, 1).Value = Round(100000000 * Rnd())
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/SetRandomMark()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/SetRandomMark()"
+Exception.Show
 End Sub
 
 
@@ -279,10 +280,12 @@ If CommentTrigger And Comment_Box.Value <> "" Then
     CommentTrigger = False
     If Not AdminMode Then SetRandomMark
 End If
-If CheckNumber(PrePay_Box.Value) Then Cells(index - Job + 1, 11).Value = PrePay_Box.Value
-If CheckNumber(Left_Box.Value) Then Cells(2, 10).Value = Left_Box.Value
-If CheckNumber(Oklad_Box.Value) Then Cells(4, 2).Value = Oklad_Box.Value
-If MakeReadOnly_Chk.Value = True Then Cells(3, 1).Value = "RO" Else Cells(3, 1).Value = ""
+If AdminMode Then
+    If CheckNumber(PrePay_Box.Value) Then Cells(index - Job + 1, 11).Value = PrePay_Box.Value
+    If CheckNumber(Left_Box.Value) Then Cells(2, 10).Value = Left_Box.Value
+    If CheckNumber(Oklad_Box.Value) Then Cells(4, 2).Value = Oklad_Box.Value
+    If MakeReadOnly_Chk.Value = True Then Cells(3, 1).Value = "RO" Else Cells(3, 1).Value = ""
+End If
 Cells(index - Job + 1, 2).Select
 If (Cells(index - Job + 1, 2).Value = "") And _
    (Cells(index - Job + 1, 11).Value = "") And _
@@ -299,8 +302,8 @@ FillControlList
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/RecordInfo()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/RecordInfo()"
+Exception.Show
 End Sub
 Sub DeleteInfo(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
@@ -336,8 +339,8 @@ FillControlList
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/DeleteInfo()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/DeleteInfo()"
+Exception.Show
 End Sub
 
 Sub ClearDay(ByVal Day)
@@ -382,8 +385,8 @@ FillControlList
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/ClearDay()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/ClearDay()"
+Exception.Show
 End Sub
 Sub ReadLine(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
@@ -410,8 +413,8 @@ DayTrigger = False
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/ReadLine()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/ReadLine()"
+Exception.Show
 End Sub
 Function LastFilled(ByVal Day) As Integer
 On Error GoTo ExceptionControl:
@@ -423,8 +426,8 @@ Next
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/LastFilled()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/LastFilled()"
+Exception.Show
 End Function
 
 Private Sub AltDiam_Box_Change()
@@ -450,8 +453,8 @@ inRead = False
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Bonus_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Bonus_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub BonusRate_Box_Change()
@@ -467,8 +470,8 @@ Next
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/CollapseJobs_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/CollapseJobs_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub Comment_Box_Change()
@@ -519,6 +522,10 @@ ObjectsRecall
 ConfirmObject = 4
 End Sub
 
+Private Sub Label2_Click()
+
+End Sub
+
 Private Sub LastMonth_Label_Click()
 ObjectsRecall
 End Sub
@@ -531,8 +538,8 @@ If Apply_Button.Enabled = True Then Apply_Button.SetFocus
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Div_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Div_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub Triv_Button_Click()
@@ -543,8 +550,8 @@ If Apply_Button.Enabled = True Then Apply_Button.SetFocus
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Triv_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Triv_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub SelectUpdatesOnly_Change()
@@ -561,8 +568,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/ControlList_DblClick()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/ControlList_DblClick()"
+Exception.Show
 End Sub
 
 Private Sub DayList_DblClick()
@@ -580,8 +587,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/DayList_DblClick()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/DayList_DblClick()"
+Exception.Show
 End Sub
 
 Sub FillDayList(ByVal Day)
@@ -607,27 +614,37 @@ If (Records > 0) Or (Cells(index, 13).Value <> "") Then
             TotalTime = TotalTime + TimeList
             RateList = Cells(index, 7)
             Subtotal = Cells(index, 9)
-            DayList.ListItems.Add = i
-            DayList.ListItems.Item(i).ListSubItems.Add = JobName
-            DayList.ListItems.Item(i).ListSubItems.Add = Amount
-            DayList.ListItems.Item(i).ListSubItems.Add = UnitList
-            DayList.ListItems.Item(i).ListSubItems.Add = TimeList
-            DayList.ListItems.Item(i).ListSubItems.Add = RateList
-            DayList.ListItems.Item(i).ListSubItems.Add = Subtotal
+            With DayList
+                .ListItems.Add = i
+                .ListItems.Item(i).ListSubItems.Add = JobName
+                .ListItems.Item(i).ListSubItems.Add = Amount
+                .ListItems.Item(i).ListSubItems.Add = UnitList
+                .ListItems.Item(i).ListSubItems.Add = TimeList
+                .ListItems.Item(i).ListSubItems.Add = RateList
+                .ListItems.Item(i).ListSubItems.Add = Subtotal
+            End With
         End If
         If Cells(index, 13).Value <> "" Then Comment_Box.AddItem (Cells(index, 13).Value)
     Next i
-    If DayList.ListItems.Count > 0 Then
-        index = InfoOffset + Lines * (Day - 1)
-        DayList.ListItems.Add = " "
-        DayList.ListItems.Add = " "
-        DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = ""
-        DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = ""
-        DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = "ВСЕГО"
-        DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = TotalTime
-        DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = "ИТОГО"
-        DayList.ListItems.Item(DayList.ListItems.Count).ListSubItems.Add = Cells(index, 10).Value
-    End If
+    With DayList
+        If .ListItems.Count > 0 Then
+            index = InfoOffset + Lines * (Day - 1)
+            If .ListItems.Count < Lines Then
+                .ListItems.Add = .ListItems.Count + 1
+                If .ListItems.Count = CJob_Box.Value Then .ListItems.Item(CInt(CJob_Box.Value)).ForeColor = &HFF&
+            Else
+                .ListItems.Add = " "
+            End If
+                .ListItems.Add = " "
+                .ListItems.Item(.ListItems.Count).ListSubItems.Add = ""
+                .ListItems.Item(.ListItems.Count).ListSubItems.Add = ""
+                .ListItems.Item(.ListItems.Count).ListSubItems.Add = "ВСЕГО"
+                .ListItems.Item(.ListItems.Count).ListSubItems.Add = TotalTime
+                .ListItems.Item(.ListItems.Count).ListSubItems.Add = "ИТОГО"
+                .ListItems.Item(.ListItems.Count).ListSubItems.Add = Cells(index, 10).Value
+                .Refresh
+        End If
+    End With
     If Comment_Box.ListCount > 0 Then
         Comment_Box.Value = Comment_Box.List(Comment_Box.ListCount - 1)
         CommentTrigger = False
@@ -640,8 +657,8 @@ If Records > Lines - 1 Then CJob_Box.Value = Lines
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/FillDayList()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/FillDayList()"
+Exception.Show
 End Sub
 
 
@@ -679,8 +696,8 @@ WorkersTree.SetFocus
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/ChooseWorker_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/ChooseWorker_Click()"
+Exception.Show
 End Sub
 Private Sub ChooseMate_Button_Click()
 On Error Resume Next
@@ -737,8 +754,8 @@ End If
 Exit Sub
 
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/JobName_Box_Change()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/JobName_Box_Change()"
+Exception.Show
 End Sub
 
 Private Sub JobsTree_DblClick()
@@ -783,8 +800,8 @@ End If
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/isVisible()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/isVisible()"
+Exception.Show
 End Function
 
 Sub Mark(ByVal Day As Integer, ByVal PrevMarked As Boolean)
@@ -800,8 +817,8 @@ End With
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Mark()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Mark()"
+Exception.Show
 End Sub
 Sub MakeShitLookGood()
 On Error GoTo ExceptionControl:
@@ -817,8 +834,8 @@ Next
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/MakeShitLookGood()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/MakeShitLookGood()"
+Exception.Show
 End Sub
 
 Private Sub Print_Button_Click()
@@ -832,15 +849,15 @@ If NameChooser.Value <> "" Then
     If OnScreen_Chk.Value = False Then
         WorkersExit = True
         Workers.Hide
-        Form.Hide
+        Main.Hide
         Cells(3, 1).Select
     End If
 End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Print_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Print_Button_Click()"
+Exception.Show
 End Sub
 Private Sub Rate_Box_Change()
 If Rate_Box.Value <> "" Then Rate_Box.Value = PointFilter(Rate_Box.Value)
@@ -869,8 +886,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/CDay_Box_Change()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/CDay_Box_Change()"
+Exception.Show
 End Sub
 Private Sub CJob_Box_Change()
 ReadLine CDay_Box.Value, CJob_Box.Value
@@ -900,8 +917,8 @@ End With
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/MarkListLine()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/MarkListLine()"
+Exception.Show
 End Sub
 
 Private Sub Control_Button_Click()
@@ -926,10 +943,10 @@ If NameChooser.Value <> "" And MateChooser.Value <> "" Then
                 b = MsgBox(MateName_Box & " уже записался на " & CDay_Box.Value & " " & MName(CMonth, True) & ".", vbOKOnly, "Копирование отменено")
                 Exit Sub
             Else
-                InsureForm.Msg_label.Caption = "Все записи у " & MateName_Box & " за " & CDay_Box.Value & " " & MName(CMonth, True) & " будут перезаписаны. Выполнить копирование?"
-                InsureForm.NoButton.SetFocus
-                InsureForm.Show
-                If InsureForm.OK.Value = True Then
+                Query.Msg_label.Caption = "Все записи у " & MateName_Box & " за " & CDay_Box.Value & " " & MName(CMonth, True) & " будут перезаписаны. Выполнить копирование?"
+                Query.NoButton.SetFocus
+                Query.Show
+                If Query.OK.Value = True Then
                     Exit For
                 Else
                     Sheets(NameChooser.Value).Select
@@ -980,26 +997,26 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/CopyDay_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/CopyDay_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub Clear_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
 If Not AdminMode Then
-    InsureForm.Msg_label.Caption = "Вы действительно хотите стереть все записи за " & CDay_Box.Value & " " & MName(CMonth, True) & "?"
-    InsureForm.NoButton.SetFocus
-    InsureForm.Show
-    If InsureForm.OK.Value = True Then ClearDay (CDay_Box.Value)
+    Query.Msg_label.Caption = "Вы действительно хотите стереть все записи за " & CDay_Box.Value & " " & MName(CMonth, True) & "?"
+    Query.NoButton.SetFocus
+    Query.Show
+    If Query.OK.Value = True Then ClearDay (CDay_Box.Value)
 Else
     ClearDay (CDay_Box.Value)
 End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Clear_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Clear_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub ID_Change()
@@ -1031,8 +1048,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/ID_Change()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/ID_Change()"
+Exception.Show
 End Sub
 Private Sub NameChooser_Change()
 On Error GoTo ExceptionControl:
@@ -1050,8 +1067,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/NameChooser_Change()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/NameChooser_Change()"
+Exception.Show
 End Sub
 
 
@@ -1063,8 +1080,8 @@ If CDay_Box.Value < MDays(CMonth) Then CDay_Box.Value = CDay_Box.Value + 1
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Day_Spin_SpinDown()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Day_Spin_SpinDown()"
+Exception.Show
 End Sub
 
 Private Sub Day_Spin_SpinUp()
@@ -1074,8 +1091,8 @@ If CDay_Box.Value > 1 Then CDay_Box.Value = CDay_Box.Value - 1
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Day_Spin_SpinUp()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Day_Spin_SpinUp()"
+Exception.Show
 End Sub
 Private Sub Workers_Spin_SpinDown()
 On Error Resume Next
@@ -1159,8 +1176,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/WorkersClose_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/WorkersClose_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub Logout_Button_Click()
@@ -1173,8 +1190,8 @@ NameChooser.Value = ""
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/Logout_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/Logout_Button_Click()"
+Exception.Show
 End Sub
 
 
@@ -1220,8 +1237,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/WorkersTree_DblClick()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Workers/WorkersTree_DblClick()"
+Exception.Show
 End Sub
 
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)

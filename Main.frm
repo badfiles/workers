@@ -1,13 +1,13 @@
 ﻿VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Form 
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Main 
    ClientHeight    =   11025
    ClientLeft      =   6045
    ClientTop       =   6330
    ClientWidth     =   15270
-   OleObjectBlob   =   "Form.frx":0000
+   OleObjectBlob   =   "Main.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
-Attribute VB_Name = "Form"
+Attribute VB_Name = "Main"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -98,10 +98,10 @@ If DateTime.Month(DateTime.Date) <> NMonth Then
     Exit Sub
 End If
 
-InsureForm.NoButton.SetFocus
-InsureForm.Msg_label.Caption = "После перехода на новый месяц будет невозможно " & SwitchToLastMonth.Caption & ". Продолжаем?"
-InsureForm.Show
-If InsureForm.OK.Value = True Then
+Query.NoButton.SetFocus
+Query.Msg_label.Caption = "После перехода на новый месяц будет невозможно " & SwitchToLastMonth.Caption & ". Продолжаем?"
+Query.Show
+If Query.OK.Value = True Then
     SaveClose (WorkersBase)
 
     ArcMonth = CMonth - 1
@@ -152,13 +152,13 @@ If InsureForm.OK.Value = True Then
         Selection.EntireRow.Hidden = True
     Next
     ReportExit = True
-    FormShow
+    MainInit
 End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/GenerateNextMonth_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/GenerateNextMonth_Click()"
+Exception.Show
 End Sub
 
 Sub DropSensitiveData()
@@ -171,8 +171,8 @@ On Error GoTo ExceptionControl:
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/DropSensitiveData()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/DropSensitiveData()"
+Exception.Show
 End Sub
 
 
@@ -207,8 +207,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/DoneForNow()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/DoneForNow()"
+Exception.Show
 End Sub
 
 Private Sub RunTC_Button_Click()
@@ -223,18 +223,18 @@ Private Sub SaveAndClose_Click()
 On Error GoTo ExceptionControl:
 DoneForNow (True)
 Windows("Index.xls").Close (SaveChanges = xlDoNotSaveChanges)
-Form.Hide
+Main.Hide
 Application.Quit
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/SaveAndClose_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/SaveAndClose_Click()"
+Exception.Show
 End Sub
 
 Private Sub SaveState_Click()
 DoneForNow (False)
-FormShow
+MainInit
 End Sub
 
 Private Sub SwitchToLastMonth_Click()
@@ -265,14 +265,14 @@ Else
     Workbooks.Open Filename:=Path & "lWorkers.xls"
 End If
 ReportExit = True
-FormShow
+MainInit
 End Sub
 
 
 Private Sub InitWorkers()
 On Error GoTo ExceptionControl:
-Form.Top = 0
-Form.Left = 0
+Main.Top = 0
+Main.Left = 0
 Windows(WorkersBase).Activate
 
 ExtChange = True
@@ -307,8 +307,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/InitWorkers()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/InitWorkers()"
+Exception.Show
 End Sub
 
 Private Sub Workers_Button_Click()
@@ -376,8 +376,8 @@ End If
 '                         Workers.NameChooser.Value = Workers.NameChooser.List(0)
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/Workers_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/Workers_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub FeeReport_Button_Click()
@@ -435,14 +435,14 @@ Next
 If NoPrintFeeReport_Chk.Value = True Then
     Sheets("Отчёт").PrintOut
 Else
-    Form.Hide
+    Main.Hide
     ReportExit = True
 End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/FeeReport_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/FeeReport_Button_Click()"
+Exception.Show
 End Sub
 
 Private Sub AvReport_Button_Click()
@@ -502,14 +502,14 @@ Next
 If NoPrintAvReport_Chk.Value = True Then
     Sheets("АвансовыйОтчёт").PrintOut
 Else
-     Form.Hide
+     Main.Hide
      ReportExit = True
 End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/AvReport_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/AvReport_Button_Click()"
+Exception.Show
 End Sub
 Private Sub FillAndBorders(ByVal MarkLine As Boolean)
 Selection.NumberFormat = "#,##0.00"
@@ -565,8 +565,8 @@ Setup.Show
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Form/Setup_Button_Click()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Form/Setup_Button_Click()"
+Exception.Show
 End Sub
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
 BlockIt.Pass = PinAdmin

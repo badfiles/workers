@@ -17,7 +17,7 @@ Public Const FtpStorageName = "10.10.11.1"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
 
-Public Const Version = "U-3.3.111"
+Public Const Version = "U-3.4.114"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -32,8 +32,8 @@ Workbooks.Open Filename:=Fil
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/OpenFile()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/OpenFile()"
+Exception.Show
 End Sub
 Public Sub SaveClose(ByVal Fil As String)
 On Error GoTo ExceptionControl:
@@ -43,8 +43,8 @@ ActiveWorkbook.Close
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/SaveClose()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/SaveClose()"
+Exception.Show
 End Sub
 
 Public Sub JustSave(ByVal Fil As String)
@@ -54,8 +54,8 @@ ActiveWorkbook.Save
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/JustSave()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/JustSave()"
+Exception.Show
 End Sub
 Public Sub RunCommand(ByVal Command As String)
 On Error GoTo over:
@@ -68,17 +68,13 @@ over:
 End Sub
 
 Public Function AfterRecord(ListName)
-
 Sheets(ListName).Select
 ActiveSheet.Protect Password = "trytoguess", DrawingObjects:=True, Contents:=True, Scenarios:=True
-
 End Function
 
 Public Function BeforeRecord(ListName)
-
 Sheets(ListName).Select
 ActiveSheet.Unprotect Password = "trytoguess"
-
 End Function
 
 Public Function TokenSum() As Long
@@ -91,8 +87,8 @@ Next
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/TokenSum()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/TokenSum()"
+Exception.Show
 End Function
 Public Function PointFilter(Val, Optional AllowNeg As Boolean = True, Optional AllowPoint As Boolean = True, Optional MaxLength As Integer = 9) As String
 On Error GoTo ExceptionControl:
@@ -113,8 +109,8 @@ End If
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/PointFilter()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/PointFilter()"
+Exception.Show
 End Function
 Public Function CheckNumber(ByVal Str As String) As Boolean
 On Error GoTo ExceptionControl:
@@ -122,8 +118,8 @@ If (Str <> Application.DecimalSeparator) And (Str <> "-") And (Str <> "-" & Appl
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/CheckNumber()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/CheckNumber()"
+Exception.Show
 End Function
 
 Public Sub TransferBalance(ByVal Name, ByVal Balance)
@@ -137,8 +133,8 @@ Windows("lWorkers.xls").Activate
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/TransferBalance()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/TransferBalance()"
+Exception.Show
 End Sub
 
 Public Function GetDayName(Num) As String
@@ -150,8 +146,8 @@ GetDayName = DName(ShowDay)
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/GetDayName()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/GetDayName()"
+Exception.Show
 End Function
 
 Public Function DName(Num) As String
@@ -276,8 +272,8 @@ Next
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/IsOpened()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/IsOpened()"
+Exception.Show
 End Function
 Public Function GetWorkerID(ByVal WorkerKey As String) As Integer
 On Error GoTo ExceptionControl:
@@ -293,8 +289,8 @@ Next
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/GetWorkerID()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/GetWorkerID()"
+Exception.Show
 End Function
 Public Function CutZ(Val As String) As Integer
 On Error GoTo ExceptionControl:
@@ -302,8 +298,8 @@ CutZ = CInt(Left(Val, Len(Val) - 1))
 
 Exit Function
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/CutZ()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/CutZ()"
+Exception.Show
 End Function
 Public Sub PullOnServer()
 On Error GoTo ExceptionControl:
@@ -410,8 +406,8 @@ End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Main/PullOnServer()"
-ErrorForm.Show
+Exception.Error_Box.Value = "Main/PullOnServer()"
+Exception.Show
 End Sub
 
 Public Sub MainReInit()
@@ -419,23 +415,23 @@ On Error GoTo ExceptionControl:
   
 If Not AdminMode Then
     WorkersBase = "tWorkers.xls"
-    Form.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Рабочее место] " & Version
+    Main.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Рабочее место] " & Version
     Workers.Bonus_Button.Visible = False
     Workers.BonusRate_Box.Visible = False
     Workers.Bonus_Label.Visible = False
     Workers.Logout_Button.Visible = True
     Workers.AboveOklad_Chk.Visible = False
     Workers.SelectUpdatesOnly.Visible = False
-    Form.GenerateNextMonth.Enabled = False
-    Form.SaveAndClose.Enabled = False
-    Form.SaveState.Enabled = False
-    Form.Setup_Button.Enabled = False
-    Form.FeeReport_Button.Enabled = False
-    Form.AvReport_Button.Enabled = False
-    Form.Chamber_Button.Enabled = False
+    Main.GenerateNextMonth.Enabled = False
+    Main.SaveAndClose.Enabled = False
+    Main.SaveState.Enabled = False
+    Main.Setup_Button.Enabled = False
+    Main.FeeReport_Button.Enabled = False
+    Main.AvReport_Button.Enabled = False
+    Main.Chamber_Button.Enabled = False
 Else
     WorkersBase = "Workers.xls"
-    Form.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Администратор] " & Version
+    Main.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Администратор] " & Version
     Workers.Left_Box.Locked = False
     Workers.Rate_Box.Enabled = True
     Workers.Workers_Spin.Enabled = True
@@ -467,38 +463,38 @@ If NMonth = 13 Then NMonth = 1
   
 NextMonth = MName(NMonth)
 
-Form.GenerateNextMonth.Caption = "Перейти на " & NextMonth
-If LMMode Then Form.SwitchToLastMonth.Caption = "Закрыть " & MName(CMonth) Else _
-                                 Form.SwitchToLastMonth.Caption = "Открыть " & MName(LMonth)
+Main.GenerateNextMonth.Caption = "Перейти на " & NextMonth
+If LMMode Then Main.SwitchToLastMonth.Caption = "Закрыть " & MName(CMonth) Else _
+                                 Main.SwitchToLastMonth.Caption = "Открыть " & MName(LMonth)
 
 If AdminMode Then
     If LMMode Then
-        Form.GenerateNextMonth.Enabled = False
-        Form.SaveAndClose.Enabled = False
-        Form.SaveState.Enabled = False
-        Form.Setup_Button.Enabled = False
+        Main.GenerateNextMonth.Enabled = False
+        Main.SaveAndClose.Enabled = False
+        Main.SaveState.Enabled = False
+        Main.Setup_Button.Enabled = False
     Else
-        Form.GenerateNextMonth.Enabled = True
-        Form.SaveAndClose.Enabled = True
-        Form.SaveState.Enabled = True
-        Form.Setup_Button.Enabled = True
+        Main.GenerateNextMonth.Enabled = True
+        Main.SaveAndClose.Enabled = True
+        Main.SaveState.Enabled = True
+        Main.Setup_Button.Enabled = True
     End If
 End If
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "MainReInit()"
-ErrorForm.Show
+Exception.Error_Box.Value = "MainReInit()"
+Exception.Show
 End Sub
   
-Public Sub FormShow()
+Public Sub MainInit()
 On Error Resume Next
-Form.Top = 0
-Form.Left = 0
-Form.Width = Round(GetSystemMetrics32(0) * 72 / 96)
-Form.Height = Round(GetSystemMetrics32(1) * 72 / 96)
+Main.Top = 0
+Main.Left = 0
+Main.Width = Round(GetSystemMetrics32(0) * 72 / 96)
+Main.Height = Round(GetSystemMetrics32(1) * 72 / 96)
 MainReInit
-Form.Show
+Main.Show
 
 ''If ReportExit = False And WorkersExit = False Then BlockIt.Show
 
@@ -509,19 +505,11 @@ Form.Show
  '   Workers.Show
 '   End If
 
-'If WorkersExit = False Then Form.Show
+'If WorkersExit = False Then Main.Show
 
 End Sub
 
 Sub Choose()
 Attribute Choose.VB_ProcData.VB_Invoke_Func = "q\n14"
-FormShow
+MainInit
 End Sub
-
-
-Public Function Recovery()
-
-BlockIt.Show
-
-Archive.Show
-End Function
