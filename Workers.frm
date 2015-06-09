@@ -1,6 +1,6 @@
 ﻿VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Workers 
-   ClientHeight    =   11025
+   ClientHeight    =   10890
    ClientLeft      =   45
    ClientTop       =   375
    ClientWidth     =   17085
@@ -13,13 +13,16 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim inRead, CommentTrigger, DayTrigger As Boolean
-Dim ChosenMate As Integer
+Dim ChosenMate, ConfirmObject As Integer
 Dim TestNode As Node
 Sub ObjectsRecall()
 WorkersTreeHolder.Visible = False
 JobsTree.Visible = True
 DayList.Visible = True
 DateAndWorker_Frame.Visible = True
+ConfirmObject = 0
+ConfirmChoice_Button.Top = 420
+ConfirmChoice_Button.Left = 102
 End Sub
 Sub ScanWorkers()
 On Error GoTo ExceptionControl:
@@ -117,7 +120,7 @@ ErrorForm.Error_Box.Value = "Workers/ScanJobs()"
 ErrorForm.Show
 End Sub
 
-Sub FillControlBox()
+Sub FillControlList()
 On Error GoTo ExceptionControl:
 Sheets(NameChooser.Value).Activate
 ControlList.ListItems.Clear
@@ -138,12 +141,19 @@ For i = InfoOffset To InfoOffset + 31 * Lines - Lines Step Lines
         ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems.Add = Fee
         ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems.Add = Pre
         ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems.Add = Comment
+        If CInt(Dat) = CDay_Box.Value Then
+            ControlList.ListItems.Item(ControlList.ListItems.Count).ForeColor = &HFF&
+            For j = 1 To ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems.Count
+                ControlList.ListItems.Item(ControlList.ListItems.Count).ListSubItems(j).ForeColor = &HFF&
+            Next j
+        End If
     End If
 Next i
+ControlList.Refresh
 
 Exit Sub
 ExceptionControl:
-ErrorForm.Error_Box.Value = "Workers/FillControlBox()"
+ErrorForm.Error_Box.Value = "Workers/FillControlList()"
 ErrorForm.Show
 End Sub
 
@@ -285,7 +295,7 @@ FillDayList (CDay_Box.Value)
 MakeShitLookGood
 If LMMode Then TransferBalance NameChooser.Value, Balance_Box.Value
 DayTrigger = False
-FillControlBox
+FillControlList
 
 Exit Sub
 ExceptionControl:
@@ -309,8 +319,8 @@ Cells(index, 14).ClearContents
 If AdminMode Then Cells(index, 3) = 4
 Cells(index, 2).Select
 If (Cells(index, 2).Value = "") And _
-    (Cells(index, 11).Value = "") And _
-    (Cells(index, 13).Value = "") Then Selection.EntireRow.Hidden = True
+   (Cells(index, 11).Value = "") And _
+   (Cells(index, 13).Value = "") Then Selection.EntireRow.Hidden = True
 ReadLockedInfo
 JobName_Box.Value = ""
 ID = ""
@@ -322,7 +332,7 @@ Unit.Caption = ""
 MakeShitLookGood
 If LMMode Then TransferBalance NameChooser.Value, Balance_Box.Value
 FillDayList (CDay_Box.Value)
-FillControlBox
+FillControlList
 
 Exit Sub
 ExceptionControl:
@@ -368,7 +378,7 @@ Unit.Caption = ""
 MakeShitLookGood
 If LMMode Then TransferBalance NameChooser.Value, Balance_Box.Value
 FillDayList (CDay_Box.Value)
-FillControlBox
+FillControlList
 
 Exit Sub
 ExceptionControl:
@@ -473,9 +483,40 @@ Private Sub Comment_Box_DropButtonClick()
 ObjectsRecall
 End Sub
 
+Private Sub ConfirmChoice_Button_Click()
+Select Case ConfirmObject
+Case 1
+       WorkersTree_DblClick
+Case 2
+       ControlList_DblClick
+Case 3
+       DayList_DblClick
+Case 4
+       JobsTree_DblClick
+End Select
+ConfirmObject = 0
+End Sub
+
+Private Sub ControlList_Click()
+ObjectsRecall
+ConfirmObject = 2
+ConfirmChoice_Button.Top = 120
+ConfirmChoice_Button.Left = 570
+End Sub
+
+Private Sub DayList_Click()
+ObjectsRecall
+ConfirmObject = 3
+End Sub
+
 Private Sub Delete_Button_Click()
 ObjectsRecall
 DeleteInfo CDay_Box.Value, CJob_Box.Value
+End Sub
+
+Private Sub JobsTree_Click()
+ObjectsRecall
+ConfirmObject = 4
 End Sub
 
 Private Sub LastMonth_Label_Click()
@@ -627,6 +668,9 @@ WorkersTreeHolder.Left = 320
 
 DateAndWorker_Frame.Visible = False
 WorkersTreeHolder.Visible = True
+ConfirmObject = 1
+ConfirmChoice_Button.Top = 46
+ConfirmChoice_Button.Left = 270
 If ChosenMate <> 0 Then
     WorkersTree.Nodes(ChosenMate).Selected = True
     ChosenMate = 0
@@ -642,7 +686,10 @@ Private Sub ChooseMate_Button_Click()
 On Error Resume Next
 ObjectsRecall
 WorkersTreeHolder.Top = 255
-WorkersTreeHolder.Left = 250
+WorkersTreeHolder.Left = 290
+ConfirmObject = 1
+ConfirmChoice_Button.Top = 310
+ConfirmChoice_Button.Left = 240
 'For i = 1 To CInt(WorkersTree.Tag)
 '  If WorkersTree.Nodes(i).Tag = "Cat" Then _
 '        WorkersTree.Nodes(i).Expanded = False
@@ -817,6 +864,7 @@ If (NameChooser.Value <> "") And (Not ExtChange) Then
     ReadLine Workers.CDay_Box.Value, Workers.CJob_Box.Value
     Label_FullDate.Caption = GetDayName(Workers.CDay_Box.Value) & ", " & Workers.CDay_Box.Value & " " & MName(CMonth, True)
     Workers.Caption = Workers.RealName_Box.Value & ": " & Workers.Label_FullDate.Caption
+    MarkListLine ControlList, CDay_Box.Value
 End If
 
 Exit Sub
@@ -826,9 +874,38 @@ ErrorForm.Show
 End Sub
 Private Sub CJob_Box_Change()
 ReadLine CDay_Box.Value, CJob_Box.Value
+MarkListLine DayList, CJob_Box.Value
 End Sub
+
+Private Sub MarkListLine(ByRef List As ListView4, ByVal Line As Integer)
+On Error GoTo ExceptionControl:
+With List
+    For i = 1 To .ListItems.Count
+        If .ListItems.Item(i).Text <> " " Then
+            If CInt(.ListItems.Item(i).Text) = Line Then
+                .ListItems.Item(i).ForeColor = &HFF&
+                For j = 1 To .ListItems.Item(i).ListSubItems.Count
+                    .ListItems.Item(i).ListSubItems(j).ForeColor = &HFF&
+                Next j
+            Else
+                .ListItems.Item(i).ForeColor = &H0&
+                For j = 1 To .ListItems.Item(i).ListSubItems.Count
+                    .ListItems.Item(i).ListSubItems(j).ForeColor = &H0&
+                Next j
+            End If
+        End If
+    Next i
+    .Refresh
+End With
+
+Exit Sub
+ExceptionControl:
+ErrorForm.Error_Box.Value = "Workers/MarkListLine()"
+ErrorForm.Show
+End Sub
+
 Private Sub Control_Button_Click()
-FillControlBox
+FillControlList
 End Sub
 
 Private Sub CopyDay_Button_Click()
@@ -961,7 +1038,7 @@ Private Sub NameChooser_Change()
 On Error GoTo ExceptionControl:
 If NameChooser.Value <> "" Then
     Sheets(NameChooser.Value).Select
-    FillControlBox
+    FillControlList
     ReadLockedInfo
     Workers.Caption = RealName_Box.Value & ": " & Label_FullDate.Caption
     FillDayList (CDay_Box.Value)
@@ -1100,6 +1177,10 @@ ErrorForm.Error_Box.Value = "Workers/Logout_Button_Click()"
 ErrorForm.Show
 End Sub
 
+
+Private Sub WorkersTree_Click()
+ConfirmObject = 1
+End Sub
 
 Private Sub WorkersTree_DblClick()
 On Error GoTo ExceptionControl:

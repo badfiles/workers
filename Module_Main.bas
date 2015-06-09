@@ -17,7 +17,7 @@ Public Const FtpStorageName = "10.10.11.1"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
 
-Public Const Version = "U-3.3.110"
+Public Const Version = "U-3.3.111"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -145,7 +145,7 @@ Public Function GetDayName(Num) As String
 On Error GoTo ExceptionControl:
 DateString = "1/" & CMonth & "/" & CYear
 stDay = DateTime.Weekday(DateTime.DateValue(DateString))
-ShowDay = Abs(-1 + Num + stDay - 1) Mod 7 + 1
+ShowDay = Abs(Num + stDay - 2) Mod 7 + 1
 GetDayName = DName(ShowDay)
 
 Exit Function
@@ -307,7 +307,8 @@ ErrorForm.Show
 End Function
 Public Sub PullOnServer()
 On Error GoTo ExceptionControl:
-Dim PushArray(1 To Lines * 31 + InfoOffset - 1), PullArray(1 To Lines * 31 + InfoOffset - 1), CommentArray(1 To Lines * 31 + InfoOffset - 1) As Boolean
+Dim PushArray(InfoOffset To Lines * 31 + InfoOffset - 1), PullArray(InfoOffset To Lines * 31 + InfoOffset - 1) As Boolean
+Dim CommentArray(InfoOffset To Lines * 31 + InfoOffset - 1) As Boolean
 
 PullBase = "pull.xls"
 Sheets("Каталог").Select
