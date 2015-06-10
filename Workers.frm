@@ -22,7 +22,7 @@ DayList.Visible = True
 DateAndWorker_Frame.Visible = True
 ConfirmObject = 0
 ConfirmChoice_Button.Top = 420
-ConfirmChoice_Button.Left = 102
+ConfirmChoice_Button.Left = 120
 End Sub
 Sub ScanWorkers()
 On Error GoTo ExceptionControl:
@@ -208,10 +208,14 @@ Exception.Show
 End Sub
 
 
-Sub RecordInfo(ByVal Day, ByVal Job)
+Sub RecordInfo(ByVal Day, ByVal Job, Optional ByVal Mark As Boolean = False)
 On Error GoTo ExceptionControl:
 If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
 index = Job + InfoOffset + Lines * (Day - 1) - 1
+If Mark Then
+    If Cells(index, 15).Value = 1 Then Cells(index, 15).Value = "" Else Cells(index, 15).Value = 1
+    Exit Sub
+End If
 If (ID.Value <> "") And DayTrigger Then
     Cells(index - Job + 1, 10).FormulaR1C1 = "=SUM(RC[-1]:R[8]C[-1])"
     Cells(index, 9).FormulaR1C1 = "=(RC[-5]*(1-RC[-1])+RC[-3]*RC[-1])*RC[-2]"
@@ -318,7 +322,7 @@ index = Job + InfoOffset + Lines * (Day - 1) - 1
 'Sheets(NameChooser.Value).Select
 
 Range(Cells(index, 2), Cells(index, 9)).ClearContents
-Cells(index, 14).ClearContents
+Range(Cells(index, 14), Cells(index, 15)).ClearContents
 If AdminMode Then Cells(index, 3) = 4
 Cells(index, 2).Select
 If (Cells(index, 2).Value = "") And _
@@ -366,7 +370,7 @@ If (AdminMode) Then
 Else
     Range(Cells(index, 2), Cells(index + Lines - 1, 9)).ClearContents
 End If
-Range(Cells(index, 13), Cells(index + Lines - 1, 14)).ClearContents
+Range(Cells(index, 13), Cells(index + Lines - 1, 15)).ClearContents
 Cells(index, 11) = ""
 Cells(index, 10) = ""
 Range(Cells(index, 2), Cells(index + Lines - 1, 2)).Select
@@ -501,6 +505,7 @@ ConfirmObject = 0
 End Sub
 
 Private Sub ControlList_Click()
+ControlList.Refresh
 ObjectsRecall
 ConfirmObject = 2
 ConfirmChoice_Button.Top = 120
@@ -508,6 +513,7 @@ ConfirmChoice_Button.Left = 570
 End Sub
 
 Private Sub DayList_Click()
+DayList.Refresh
 ObjectsRecall
 ConfirmObject = 3
 End Sub
@@ -520,10 +526,6 @@ End Sub
 Private Sub JobsTree_Click()
 ObjectsRecall
 ConfirmObject = 4
-End Sub
-
-Private Sub Label2_Click()
-
 End Sub
 
 Private Sub LastMonth_Label_Click()
@@ -539,6 +541,24 @@ If Apply_Button.Enabled = True Then Apply_Button.SetFocus
 Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Workers/Div_Button_Click()"
+Exception.Show
+End Sub
+
+Private Sub Select_Button_Click()
+On Error GoTo ExceptionControl:
+ObjectsRecall
+Records = DayList.ListItems.Count
+If Records > 0 Then
+    If DayList.SelectedItem.Text = "" Then Exit Sub
+    If (DayList.SelectedItem.Text <> " ") Then
+     RecordInfo CDay_Box.Value, CInt(DayList.SelectedItem.Text), True
+     FillDayList CDay_Box.Value
+    End If
+End If
+
+Exit Sub
+ExceptionControl:
+Exception.Error_Box.Value = "Workers/Select_Button_Click()"
 Exception.Show
 End Sub
 
@@ -622,6 +642,12 @@ If (Records > 0) Or (Cells(index, 13).Value <> "") Then
                 .ListItems.Item(i).ListSubItems.Add = TimeList
                 .ListItems.Item(i).ListSubItems.Add = RateList
                 .ListItems.Item(i).ListSubItems.Add = Subtotal
+                If Cells(index, 15) = "1" Then
+                    .ListItems.Item(i).ForeColor = &HC000&
+                    For j = 1 To .ListItems.Item(i).ListSubItems.Count
+                        .ListItems.Item(i).ListSubItems(j).ForeColor = &HC000&
+                    Next j
+                End If
             End With
         End If
         If Cells(index, 13).Value <> "" Then Comment_Box.AddItem (Cells(index, 13).Value)
@@ -899,16 +925,23 @@ On Error GoTo ExceptionControl:
 With List
     For i = 1 To .ListItems.Count
         If .ListItems.Item(i).Text <> " " Then
+            OldColor = .ListItems.Item(i).ForeColor
             If CInt(.ListItems.Item(i).Text) = Line Then
-                .ListItems.Item(i).ForeColor = &HFF&
+                If OldColor = &H0& Then NewColor = &HFF& Else NewColor = &H80&
+                .ListItems.Item(i).ForeColor = NewColor
                 For j = 1 To .ListItems.Item(i).ListSubItems.Count
-                    .ListItems.Item(i).ListSubItems(j).ForeColor = &HFF&
+                    .ListItems.Item(i).ListSubItems(j).ForeColor = NewColor
                 Next j
             Else
-                .ListItems.Item(i).ForeColor = &H0&
-                For j = 1 To .ListItems.Item(i).ListSubItems.Count
-                    .ListItems.Item(i).ListSubItems(j).ForeColor = &H0&
-                Next j
+                NewColor = OldColor
+                If OldColor = &H80& Then NewColor = &HC000&
+                If OldColor = &HFF& Then NewColor = &H0&
+                If NewColor <> OldColor Then
+                    .ListItems.Item(i).ForeColor = NewColor
+                    For j = 1 To .ListItems.Item(i).ListSubItems.Count
+                        .ListItems.Item(i).ListSubItems(j).ForeColor = NewColor
+                    Next j
+                End If
             End If
         End If
     Next i
@@ -965,6 +998,7 @@ If NameChooser.Value <> "" And MateChooser.Value <> "" Then
             'AddID = Cells(index, 3).Value
             Range(Cells(index, 2), Cells(index, 9)).Copy
             CopyAlternateDiam = Cells(index, 14).Value
+            MarkFlag = Cells(index, 15).Value
             'Sheets("Каталог").Select
             'If AddID > 5 Then Cells(AddID, 11).Value = Cells(AddID, 11).Value + AddAmount
             'Sheets(MateChooser.Value).Select
@@ -974,10 +1008,10 @@ If NameChooser.Value <> "" And MateChooser.Value <> "" Then
             'Sheets("Каталог").Select
             'Cells(OldId, 11).Value = Cells(OldId, 11).Value - OldAmount
             'End If
- 
             Sheets(MateChooser.Value).Select
             Cells(index, 2).PasteSpecial
             Cells(index, 14).Value = CopyAlternateDiam
+            Cells(index, 15).Value = MarkFlag
             Cells(index, 2).Select
             Selection.EntireRow.Hidden = False
         End If

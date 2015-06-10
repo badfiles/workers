@@ -17,7 +17,7 @@ Public Const FtpStorageName = "10.10.11.1"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
 
-Public Const Version = "U-3.4.114"
+Public Const Version = "U-3.4.115"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -363,12 +363,14 @@ Else
                                 Windows(PullBase).Activate
                                 Sheets(i).Select
                                 CopyAlternateDiam = Cells(j, 14).Value
+                                MarkFlag = Cells(j, 15).Value
                                 If CommentArray(j) Then CopyComment = Cells(j, 13).Value
                                 Range(Cells(j, 2), Cells(j, 9)).Copy
                                 Windows(WorkersBase).Activate
                                 Sheets(DesiredDestination).Select
                                 Cells(j, 2).PasteSpecial
                                 Cells(j, 14).Value = CopyAlternateDiam
+                                Cells(j, 15).Value = MarkFlag
                                 If CommentArray(j) Then Cells(j, 13).Value = CopyComment
                                 Cells(j, 2).Select
                                 Selection.EntireRow.Hidden = False

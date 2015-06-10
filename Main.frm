@@ -147,7 +147,7 @@ If Query.OK.Value = True Then
         Cells(2, 10).Value = Cells(1, 10).Value
         Cells(1, 1).ClearContents
         Range("b6:k284").ClearContents
-        Range("m6:n284").ClearContents
+        Range("m6:o284").ClearContents
         Rows("6:284").Select
         Selection.EntireRow.Hidden = True
     Next
