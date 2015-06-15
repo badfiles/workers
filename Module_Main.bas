@@ -17,53 +17,37 @@ Public Const FtpStorageName = "10.10.11.1"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
 
-Public Const Version = "U-3.4.115"
+Public Const Version = "U-3.4.116"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
-
+    
 Declare Function GetSystemMetrics32 Lib "user32" Alias "GetSystemMetrics" (ByVal nIndex As Long) As Long
 Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
-Public Sub OpenFile(ByVal Fil As String)
+Public Sub ProcessFile(ByVal FileName As String, ByVal Action As String)
 On Error GoTo ExceptionControl:
-'SetCaption(Fil, 1) = 0
-Workbooks.Open Filename:=Fil
+If Action = "Open" Then
+    Workbooks.Open FileName:=FileName
+Else
+    Windows(FileName).Activate
+    ActiveWorkbook.Save
+    If Action = "SaveClose" Then ActiveWorkbook.Close
+End If
 
 Exit Sub
 ExceptionControl:
-Exception.Error_Box.Value = "Main/OpenFile()"
-Exception.Show
-End Sub
-Public Sub SaveClose(ByVal Fil As String)
-On Error GoTo ExceptionControl:
-Windows(Fil).Activate
-ActiveWorkbook.Save
-ActiveWorkbook.Close
-
-Exit Sub
-ExceptionControl:
-Exception.Error_Box.Value = "Main/SaveClose()"
+Exception.Error_Box.Value = "Main/ProcessFile()"
 Exception.Show
 End Sub
 
-Public Sub JustSave(ByVal Fil As String)
-On Error GoTo ExceptionControl:
-Windows(Fil).Activate
-ActiveWorkbook.Save
-
-Exit Sub
-ExceptionControl:
-Exception.Error_Box.Value = "Main/JustSave()"
-Exception.Show
-End Sub
 Public Sub RunCommand(ByVal Command As String)
 On Error GoTo over:
 pid = Shell(Command, vbMinimizedNoFocus)
 Do
     Sleep (500)
     AppActivate (pid)
-Loop Until 1 > 2
+Loop Until False
 over:
 End Sub
 
@@ -90,18 +74,18 @@ ExceptionControl:
 Exception.Error_Box.Value = "Main/TokenSum()"
 Exception.Show
 End Function
-Public Function PointFilter(Val, Optional AllowNeg As Boolean = True, Optional AllowPoint As Boolean = True, Optional MaxLength As Integer = 9) As String
+
+Public Function PointFilter(ByVal Val, Optional ByVal AllowNeg As Boolean = True, Optional ByVal AllowPoint As Boolean = True, Optional ByVal MaxLength As Integer = 9) As String
 On Error GoTo ExceptionControl:
 PointFilter = Val
 String_Len = Len(Val)
 LastChar = Right(Val, 1)
 If LastChar = "1" Or LastChar = "2" Or LastChar = "3" Or LastChar = "4" Or LastChar = "5" Or _
    LastChar = "6" Or LastChar = "7" Or LastChar = "8" Or LastChar = "9" Or LastChar = "0" Or _
-   LastChar = "-" Or LastChar = Application.DecimalSeparator _
-Then
-    If (LastChar = "-") Then If (AllowNeg = False) Or (String_Len > 1) Then PointFilter = Left(Val, String_Len - 1)
+   LastChar = "-" Or LastChar = Application.DecimalSeparator Then
+    If (LastChar = "-") Then If (Not AllowNeg) Or (String_Len > 1) Then PointFilter = Left(Val, String_Len - 1)
     If (LastChar = Application.DecimalSeparator) Then _
-     If (AllowPoint = False) Or (InStr(1, Val, Application.DecimalSeparator) <> String_Len) Then PointFilter = Left(Val, String_Len - 1)
+     If (Not AllowPoint) Or (InStr(1, Val, Application.DecimalSeparator) <> String_Len) Then PointFilter = Left(Val, String_Len - 1)
     If String_Len > MaxLength Then PointFilter = Left(Val, String_Len - 1)
 Else
     PointFilter = Left(Val, String_Len - 1)
@@ -112,6 +96,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Main/PointFilter()"
 Exception.Show
 End Function
+
 Public Function CheckNumber(ByVal Str As String) As Boolean
 On Error GoTo ExceptionControl:
 If (Str <> Application.DecimalSeparator) And (Str <> "-") And (Str <> "-" & Application.DecimalSeparator) Then CheckNumber = True Else CheckNumber = False
@@ -137,7 +122,7 @@ Exception.Error_Box.Value = "Main/TransferBalance()"
 Exception.Show
 End Sub
 
-Public Function GetDayName(Num) As String
+Public Function GetDayName(ByVal Num) As String
 On Error GoTo ExceptionControl:
 DateString = "1/" & CMonth & "/" & CYear
 stDay = DateTime.Weekday(DateTime.DateValue(DateString))
@@ -150,7 +135,7 @@ Exception.Error_Box.Value = "Main/GetDayName()"
 Exception.Show
 End Function
 
-Public Function DName(Num) As String
+Public Function DName(ByVal Num) As String
 Select Case Num
 Case 2
        DName = "Понедельник"
@@ -201,7 +186,8 @@ Case Else
        MName = "#Месяц не определён#"
 End Select
 End Function
-Public Function MNameEng(Num) As String
+
+Public Function MNameEng(ByVal Num) As String
 Select Case Num
 Case 1
        MNameEng = "Jan"
@@ -232,7 +218,7 @@ Case Else
 End Select
 End Function
 
-Public Function MDays(Num) As Integer
+Public Function MDays(ByVal Num) As Integer
 Select Case Num
 Case 1
        MDays = 31
@@ -263,11 +249,14 @@ Case Else
 End Select
 End Function
 
-Public Function IsOpened(Fil) As Boolean
+Public Function IsOpened(ByVal FileName As String) As Boolean
 On Error GoTo ExceptionControl:
 IsOpened = False
 For i = 1 To Workbooks.Count
-  If Workbooks(i).Name = Fil Then IsOpened = True
+    If Workbooks(i).Name = FileName Then
+        IsOpened = True
+        Exit For
+    End If
 Next
 
 Exit Function
@@ -275,6 +264,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Main/IsOpened()"
 Exception.Show
 End Function
+
 Public Function GetWorkerID(ByVal WorkerKey As String) As Integer
 On Error GoTo ExceptionControl:
 GetWorkerID = 0
@@ -292,7 +282,8 @@ ExceptionControl:
 Exception.Error_Box.Value = "Main/GetWorkerID()"
 Exception.Show
 End Function
-Public Function CutZ(Val As String) As Integer
+
+Public Function CutZ(ByVal Val As String) As Integer
 On Error GoTo ExceptionControl:
 CutZ = CInt(Left(Val, Len(Val) - 1))
 
@@ -301,17 +292,17 @@ ExceptionControl:
 Exception.Error_Box.Value = "Main/CutZ()"
 Exception.Show
 End Function
+
 Public Sub PullOnServer()
 On Error GoTo ExceptionControl:
-Dim PushArray(InfoOffset To Lines * 31 + InfoOffset - 1), PullArray(InfoOffset To Lines * 31 + InfoOffset - 1) As Boolean
-Dim CommentArray(InfoOffset To Lines * 31 + InfoOffset - 1) As Boolean
+Dim PushArray(), PullArray(), CommentArray() As Boolean
 
 PullBase = "pull.xls"
 Sheets("Каталог").Select
 LastMonthTokens = Cells(1, 6).Value
 ThisMonthTokens = Cells(2, 6).Value
 
-If Not IsOpened(PullBase) Then Workbooks.Open Filename:=Path + PullBase
+If Not IsOpened(PullBase) Then Workbooks.Open FileName:=Path + PullBase
 
 Windows(PullBase).Activate
 Sheets("Каталог").Select
@@ -320,7 +311,6 @@ PullMonth = Cells(2, 3).Value
 PulledTokens = Cells(2, 6).Value
 
 If (PullYear <> CYear) Or (PullMonth <> CMonth) Then
-    'pull from another month
     ActiveWorkbook.Close
     Windows(WorkersBase).Activate
 Else
@@ -340,8 +330,12 @@ Else
                     If Cells(2, 1).Value <> PullToken Then
                         Cells(2, 1).Value = PullToken
                         Cells(1, 1).Value = LastDay
-                    
-                        For j = InfoOffset To Lines * 31 + InfoOffset - 1
+                        Dimention = Lines * 31 + InfoOffset - 1
+                        ReDim PushArray(InfoOffset To Dimention)
+                        ReDim PullArray(InfoOffset To Dimention)
+                        ReDim CommentArray(InfoOffset To Dimention)
+
+                        For j = InfoOffset To Dimention
                             PushArray(j) = False
                             If Cells(j, 3).Value = "" Then PushArray(j) = True
                         Next j
@@ -351,14 +345,14 @@ Else
                         Windows(PullBase).Activate
                         Sheets(i).Select
                            
-                        For j = InfoOffset To Lines * 31 + InfoOffset - 1
+                        For j = InfoOffset To Dimention
                            PullArray(j) = False
                            CommentArray(j) = False
                            If Cells(j, 2).Value <> "" Then PullArray(j) = True
                            If Cells(j, 13).Value <> "" Then CommentArray(j) = True
                         Next j
                      
-                        For j = InfoOffset To Lines * 31 + InfoOffset - 1
+                        For j = InfoOffset To Dimention
                            If (PushArray(j) And PullArray(j)) = True Then
                                 Windows(PullBase).Activate
                                 Sheets(i).Select
@@ -390,8 +384,9 @@ Else
                     End If
                 End If
             Next i
-    Else
-    'pull already done
+            Erase PushArray
+            Erase PullArray
+            Erase CommentArray
     End If
     Windows(PullBase).Activate
     ActiveWorkbook.Close
@@ -414,8 +409,20 @@ End Sub
 
 Public Sub MainReInit()
 On Error GoTo ExceptionControl:
-  
-If Not AdminMode Then
+If AdminMode Then
+    WorkersBase = "Workers.xls"
+    Main.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Администратор] " & Version
+    Workers.Left_Box.Locked = False
+    Workers.Rate_Box.Enabled = True
+    Workers.Workers_Spin.Enabled = True
+    Workers.PrePay_Box.Enabled = True
+    Workers.Bonus_Button.Visible = True
+    Workers.BonusRate_Box.Visible = True
+    Workers.Bonus_Label.Visible = True
+    Workers.OnScreen_Chk.Enabled = True
+    Workers.Oklad_Box.Enabled = True
+    Workers.Logout_Button.Visible = False
+Else
     WorkersBase = "tWorkers.xls"
     Main.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Рабочее место] " & Version
     Workers.Bonus_Button.Visible = False
@@ -431,24 +438,11 @@ If Not AdminMode Then
     Main.FeeReport_Button.Enabled = False
     Main.AvReport_Button.Enabled = False
     Main.Chamber_Button.Enabled = False
-Else
-    WorkersBase = "Workers.xls"
-    Main.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Администратор] " & Version
-    Workers.Left_Box.Locked = False
-    Workers.Rate_Box.Enabled = True
-    Workers.Workers_Spin.Enabled = True
-    Workers.PrePay_Box.Enabled = True
-    Workers.Bonus_Button.Visible = True
-    Workers.BonusRate_Box.Visible = True
-    Workers.Bonus_Label.Visible = True
-    Workers.OnScreen_Chk.Enabled = True
-    Workers.Oklad_Box.Enabled = True
-    Workers.Logout_Button.Visible = False
 End If
 
 Path = Workbooks("Index.xls").Path + "\"
 
-If Not IsOpened(WorkersBase) Then Workbooks.Open Filename:=Path + WorkersBase
+If Not IsOpened(WorkersBase) Then Workbooks.Open FileName:=Path + WorkersBase
 
 LMMode = IsOpened("lWorkers.xls")
 If LMMode Then WorkersBase = "lWorkers.xls"
@@ -465,23 +459,24 @@ If NMonth = 13 Then NMonth = 1
   
 NextMonth = MName(NMonth)
 
-Main.GenerateNextMonth.Caption = "Перейти на " & NextMonth
-If LMMode Then Main.SwitchToLastMonth.Caption = "Закрыть " & MName(CMonth) Else _
-                                 Main.SwitchToLastMonth.Caption = "Открыть " & MName(LMonth)
+With Main
+    .GenerateNextMonth.Caption = "Перейти на " & NextMonth
+    If LMMode Then .SwitchToLastMonth.Caption = "Закрыть " & MName(CMonth) Else .SwitchToLastMonth.Caption = "Открыть " & MName(LMonth)
 
-If AdminMode Then
-    If LMMode Then
-        Main.GenerateNextMonth.Enabled = False
-        Main.SaveAndClose.Enabled = False
-        Main.SaveState.Enabled = False
-        Main.Setup_Button.Enabled = False
-    Else
-        Main.GenerateNextMonth.Enabled = True
-        Main.SaveAndClose.Enabled = True
-        Main.SaveState.Enabled = True
-        Main.Setup_Button.Enabled = True
+    If AdminMode Then
+        If LMMode Then
+            .GenerateNextMonth.Enabled = False
+            .SaveAndClose.Enabled = False
+            .SaveState.Enabled = False
+            .Setup_Button.Enabled = False
+        Else
+            .GenerateNextMonth.Enabled = True
+            .SaveAndClose.Enabled = True
+            .SaveState.Enabled = True
+            .Setup_Button.Enabled = True
+        End If
     End If
-End If
+End With
 
 Exit Sub
 ExceptionControl:
@@ -491,24 +486,14 @@ End Sub
   
 Public Sub MainInit()
 On Error Resume Next
+Application.EnableCancelKey = xlDisabled
+Application.ScreenUpdating = False
 Main.Top = 0
 Main.Left = 0
-Main.Width = Round(GetSystemMetrics32(0) * 72 / 96)
-Main.Height = Round(GetSystemMetrics32(1) * 72 / 96)
+Main.Width = GetSystemMetrics32(0) * 72 \ 96
+Main.Height = GetSystemMetrics32(1) * 72 \ 96
 MainReInit
 Main.Show
-
-''If ReportExit = False And WorkersExit = False Then BlockIt.Show
-
-'ReportExit = False
-
-'If WorkersExit = True Then
-'    WorkersExit = False
- '   Workers.Show
-'   End If
-
-'If WorkersExit = False Then Main.Show
-
 End Sub
 
 Sub Choose()

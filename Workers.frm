@@ -14,7 +14,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim inRead, CommentTrigger, DayTrigger As Boolean
 Dim ChosenMate, ConfirmObject As Integer
-Dim TestNode As Node
+
 Sub ObjectsRecall()
 WorkersTreeHolder.Visible = False
 JobsTree.Visible = True
@@ -24,95 +24,97 @@ ConfirmObject = 0
 ConfirmChoice_Button.Top = 420
 ConfirmChoice_Button.Left = 120
 End Sub
+
 Sub ScanWorkers()
 On Error GoTo ExceptionControl:
-Workers.WorkersTreeHolder.Top = -500
-Workers.WorkersTree.Visible = True
-Workers.WorkersTreeHolder.Visible = True
-Workers.WorkersTree.Nodes.Clear
+With Workers
+    .WorkersTreeHolder.Top = -500
+    .WorkersTree.Visible = True
+    .WorkersTreeHolder.Visible = True
+    .WorkersTree.Nodes.Clear
 
-Sheets("Каталог").Select
-TotalCats = Cells(4, 23).Value
-For i = InfoOffset To CInt(InfoOffset - 1 + TotalCats)
-    Workers.WorkersTree.Nodes.Add(, , CStr(Cells(i, 24)) & "z", Cells(i, 23).Value).Sorted = True
-    Workers.WorkersTree.Nodes(i - InfoOffset + 1).Tag = "Cat"
-Next
+    Sheets("Каталог").Select
+    TotalCats = Cells(4, 23).Value
+    For i = InfoOffset To CInt(InfoOffset - 1 + TotalCats)
+        .WorkersTree.Nodes.Add(, , CStr(Cells(i, 24)) & "z", Cells(i, 23).Value).Sorted = True
+        .WorkersTree.Nodes(i - InfoOffset + 1).Tag = "Cat"
+    Next
   
-Sheets("Сотрудники").Select
-WeHaveWorkers = Cells(1, 2).Value
-For i = 3 To WeHaveWorkers + 2
-    For p = 1 To TotalCats
-        If (Cells(i, 4).Value <> 1) And (Workers.WorkersTree.Nodes(p).Key = CStr(Cells(i, 6).Value) & "z") Then
-            If (SelectUpdatesOnly And Cells(i, 1).Value = 1) Or Not SelectUpdatesOnly Then
-                Workers.WorkersTree.Nodes.Add(p, 4, Cells(i, 3), Cells(i, 2) & " " & Cells(i, 5)).Sorted = True
-                If Not AdminMode Then Workers.WorkersTree.Nodes(Workers.WorkersTree.Nodes.Count).Tag = Cells(i, 7)
-                p = TotalCats
+    Sheets("Сотрудники").Select
+    WeHaveWorkers = Cells(1, 2).Value
+    For i = 3 To WeHaveWorkers + 2
+        For p = 1 To TotalCats
+            If (Cells(i, 4).Value <> 1) And (.WorkersTree.Nodes(p).Key = CStr(Cells(i, 6).Value) & "z") Then
+                If (SelectUpdatesOnly And Cells(i, 1).Value = 1) Or Not SelectUpdatesOnly Then
+                    .WorkersTree.Nodes.Add(p, 4, Cells(i, 3), Cells(i, 2) & " " & Cells(i, 5)).Sorted = True
+                    If Not AdminMode Then .WorkersTree.Nodes(.WorkersTree.Nodes.Count).Tag = Cells(i, 7)
+                    p = TotalCats
+                End If
             End If
-        End If
-    Next p
-Next i
+        Next p
+    Next i
  
-p = 1
-Do While p < Workers.WorkersTree.Nodes.Count
-    If Workers.WorkersTree.Nodes(p).Children = 0 And Workers.WorkersTree.Nodes(p).Tag = "Cat" Then
-        Workers.WorkersTree.Nodes.Remove (p)
-        p = p - 1
-        TotalCats = TotalCats - 1
-    End If
-    p = p + 1
-Loop
-Workers.WorkersTree.Tag = TotalCats
-Workers.WorkersTreeHolder.Visible = False
+    p = 1
+    Do While p < .WorkersTree.Nodes.Count
+        If .WorkersTree.Nodes(p).Children = 0 And .WorkersTree.Nodes(p).Tag = "Cat" Then
+            .WorkersTree.Nodes.Remove (p)
+            p = p - 1
+            TotalCats = TotalCats - 1
+        End If
+        p = p + 1
+    Loop
+    .WorkersTree.Tag = TotalCats
+    .WorkersTreeHolder.Visible = False
+End With
 
 Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Workers/ScanWorkers()"
 Exception.Show
 End Sub
+
 Sub ScanJobs()
 On Error GoTo ExceptionControl:
 Sheets("Каталог").Select
-Workers.JobsTree.Visible = True
+With Workers
+    .JobsTree.Visible = True
 
-Workers.JobsTree.Nodes.Clear
-Workers.BonusRate_Box.Value = Cells(4, 6).Value
-TotalCats = Cells(4, 19).Value
-For i = InfoOffset To CInt(InfoOffset - 1 + TotalCats)
-    Workers.JobsTree.Nodes.Add(, , , Cells(i, 19).Value).Sorted = True
-    Workers.JobsTree.Nodes(i - InfoOffset + 1).Tag = "Cat"
-Next
+    .JobsTree.Nodes.Clear
+    .BonusRate_Box.Value = Cells(4, 6).Value
+    TotalCats = Cells(4, 19).Value
+    For i = InfoOffset To CInt(InfoOffset - 1 + TotalCats)
+        .JobsTree.Nodes.Add(, , , Cells(i, 19).Value).Sorted = True
+        .JobsTree.Nodes(i - InfoOffset + 1).Tag = "Cat"
+    Next
 
-TotalJobs = Cells(4, 2).Value
-ShowRates = Cells(4, 5).Value
-For i = InfoOffset To CInt(InfoOffset - 1 + TotalJobs)
-    AddRate = ""
-    If ShowRates = 1 Then
-        If Cells(i, 5) = 0 Then AddRate = "  (" & CStr(Cells(i, 6)) & ")" _
-            Else AddRate = "  (" & CStr(Cells(i, 5)) & ")"
-    End If
+    TotalJobs = Cells(4, 2).Value
+    ShowRates = Cells(4, 5).Value
+    For i = InfoOffset To CInt(InfoOffset - 1 + TotalJobs)
+        AddRate = ""
+        If ShowRates = 1 Then
+            If Cells(i, 5) = 0 Then AddRate = "  (" & CStr(Cells(i, 6)) & ")" Else AddRate = "  (" & CStr(Cells(i, 5)) & ")"
+        End If
   
-    If Not AdminMode Then
-        If (Cells(i, 7) = 0) And (Cells(i, 9) = 0) Then _
-            Workers.JobsTree.Nodes.Add(CInt(Cells(i, 1).Value - InfoOffset + 1), 4, _
-            CStr(Cells(i, 3)) & "z", Cells(i, 2).Value & AddRate).Sorted = True
-    Else
-        If (Cells(i, 7) = 0) Then _
-            Workers.JobsTree.Nodes.Add(CInt(Cells(i, 1).Value - InfoOffset + 1), 4, _
-            CStr(Cells(i, 3)) & "z", Cells(i, 2).Value & AddRate).Sorted = True
-    End If
-Next
+        If Not AdminMode Then
+            If (Cells(i, 7) = 0) And (Cells(i, 9) = 0) Then _
+                .JobsTree.Nodes.Add(CInt(Cells(i, 1).Value - InfoOffset + 1), 4, CStr(Cells(i, 3)) & "z", Cells(i, 2).Value & AddRate).Sorted = True
+        Else
+            If (Cells(i, 7) = 0) Then _
+                .JobsTree.Nodes.Add(CInt(Cells(i, 1).Value - InfoOffset + 1), 4, CStr(Cells(i, 3)) & "z", Cells(i, 2).Value & AddRate).Sorted = True
+        End If
+    Next
 
-p = 1
-Do While p < Workers.JobsTree.Nodes.Count
-    If Workers.JobsTree.Nodes(p).Children = 0 And Workers.JobsTree.Nodes(p).Tag = "Cat" Then
-        Workers.JobsTree.Nodes.Remove (p)
-        TotalCats = TotalCats - 1
-        p = p - 1
-    End If
-    p = p + 1
-Loop
-Workers.JobsTree.Tag = TotalCats
-
+    p = 1
+    Do While p < .JobsTree.Nodes.Count
+        If .JobsTree.Nodes(p).Children = 0 And Workers.JobsTree.Nodes(p).Tag = "Cat" Then
+            .JobsTree.Nodes.Remove (p)
+            TotalCats = TotalCats - 1
+            p = p - 1
+        End If
+        p = p + 1
+    Loop
+    .JobsTree.Tag = TotalCats
+End With
 
 Exit Sub
 ExceptionControl:
@@ -176,14 +178,16 @@ If Cells(3, 1).Value = "RO" Then
         Clear_Button.Enabled = False
         Delete_Button.Enabled = False
         ChooseMate_Button.Enabled = False
+        Select_Button.Enabled = False
     End If
 Else
     MakeReadOnly_Chk.Value = False
-    If (Not AdminMode) And (Not LMMode) Then
+    If Not (AdminMode Or LMMode) Then
         Apply_Button.Enabled = True
         Clear_Button.Enabled = True
         Delete_Button.Enabled = True
         ChooseMate_Button.Enabled = True
+        Select_Button.Enabled = True
     End If
 End If
 
@@ -199,7 +203,7 @@ End Sub
 Sub SetRandomMark()
 On Error GoTo ExceptionControl:
 Randomize
-Cells(2, 1).Value = Round(100000000 * Rnd())
+Cells(2, 1).Value = Round(10000000 * Rnd())
 
 Exit Sub
 ExceptionControl:
@@ -207,13 +211,14 @@ Exception.Error_Box.Value = "Workers/SetRandomMark()"
 Exception.Show
 End Sub
 
-
 Sub RecordInfo(ByVal Day, ByVal Job, Optional ByVal Mark As Boolean = False)
 On Error GoTo ExceptionControl:
 If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
 index = Job + InfoOffset + Lines * (Day - 1) - 1
 If Mark Then
-    If Cells(index, 15).Value = 1 Then Cells(index, 15).Value = "" Else Cells(index, 15).Value = 1
+    If Cells(index, 2).Value <> "" Then
+        If Cells(index, 15).Value = 1 Then Cells(index, 15).Value = "" Else Cells(index, 15).Value = 1
+    End If
     Exit Sub
 End If
 If (ID.Value <> "") And DayTrigger Then
@@ -225,23 +230,18 @@ If (ID.Value <> "") And DayTrigger Then
 
     If (Len(AltDiam_Box.Value) > 2) And (Len(AltDiam_Box.Value) < 5) Then
        JobNameWithoutExDiam = Mid(JobName_Box.Value, 1, Len(JobName_Box.Value) - 3)
-    
        If (Right(JobNameWithoutExDiam, 1) = "x") Or (Right(JobNameWithoutExDiam, 1) = "х") Then _
            Else JobNameWithoutExDiam = Mid(JobName_Box.Value, 1, Len(JobName_Box.Value) - 4)
-        
        Cells(index, 2).Value = JobNameWithoutExDiam & AltDiam_Box.Value
        Cells(index, 14).Value = AltDiam_Box.Value
-        
     Else
-        
        Cells(index, 2).Value = JobName_Box.Value
        Cells(index, 14).Value = ""
-        
     End If
     
     Cells(index, 3).Value = ID.Value
-    If CheckNumber(Amount_Box.Value) Then Cells(index, 4).Value = Amount_Box.Value
     Cells(index, 5).Value = Unit.Caption
+    If CheckNumber(Amount_Box.Value) Then Cells(index, 4).Value = Amount_Box.Value
     If CheckNumber(Time_Box.Value) Then Cells(index, 6).Value = Time_Box.Value
     
     If Not AdminMode Then SetRandomMark
@@ -252,14 +252,10 @@ If (ID.Value <> "") And DayTrigger Then
         Cells(index, 7).ClearContents
     End If
 
-    If Rate_Box.Tag = "Time" Then Cells(index, 8).Value = 1
-    If Rate_Box.Tag = "Amt" Then Cells(index, 8).Value = 0
+    If Rate_Box.Tag = "Time" Then Cells(index, 8).Value = 1 Else Cells(index, 8).Value = 0
 
     Cells(index, 2).Select
-    
-    If (Cells(index, 2).Value = "") Then _
-        Selection.EntireRow.Hidden = True _
-        Else Selection.EntireRow.Hidden = False
+    If (Cells(index, 2).Value = "") Then Selection.EntireRow.Hidden = True Else Selection.EntireRow.Hidden = False
        
     'AddAmount = Amount_Box.Value
     'AddTime = Time_Box.Value
@@ -309,6 +305,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/RecordInfo()"
 Exception.Show
 End Sub
+
 Sub DeleteInfo(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
 If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
@@ -392,6 +389,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/ClearDay()"
 Exception.Show
 End Sub
+
 Sub ReadLine(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
 If Day = "" Or NameChooser.Value = "" Then Exit Sub
@@ -420,6 +418,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/ReadLine()"
 Exception.Show
 End Sub
+
 Function LastFilled(ByVal Day) As Integer
 On Error GoTo ExceptionControl:
 index = InfoOffset + Lines * (Day - 1)
@@ -449,7 +448,7 @@ JobName_Box.Value = "Доплата " & CStr(BonusRate_Box.Value) & " %"
 Amount_Box.Value = 1
 Unit.Caption = " "
 Rate_Box.Tag = "Amt"
-Rate_Box.Value = Cells(index, 10).Value * BonusRate_Box.Value / 100
+Rate_Box.Value = Round(Cells(index, 10).Value * BonusRate_Box.Value / 100, 2)
 Time_Box.Value = ""
 ID.Value = 5
 If Apply_Button.Enabled = True Then Apply_Button.SetFocus
@@ -464,7 +463,6 @@ End Sub
 Private Sub BonusRate_Box_Change()
 If BonusRate_Box.Value <> "" Then BonusRate_Box.Value = PointFilter(BonusRate_Box.Value, False, False, 3)
 End Sub
-
 
 Private Sub CollapseJobs_Button_Click()
 On Error GoTo ExceptionControl:
@@ -547,13 +545,10 @@ End Sub
 Private Sub Select_Button_Click()
 On Error GoTo ExceptionControl:
 ObjectsRecall
-Records = DayList.ListItems.Count
-If Records > 0 Then
-    If DayList.SelectedItem.Text = "" Then Exit Sub
-    If (DayList.SelectedItem.Text <> " ") Then
-     RecordInfo CDay_Box.Value, CInt(DayList.SelectedItem.Text), True
-     FillDayList CDay_Box.Value
-    End If
+If DayList.ListItems.Count > 0 Then
+    If DayList.SelectedItem.Text = "" Or DayList.SelectedItem.Text = " " Then Exit Sub
+    RecordInfo CDay_Box.Value, CInt(DayList.SelectedItem.Text), True
+    FillDayList CDay_Box.Value
 End If
 
 Exit Sub
@@ -680,13 +675,11 @@ End If
 If Records < Lines Then CJob_Box.Value = Records + 1
 If Records > Lines - 1 Then CJob_Box.Value = Lines
 
-
 Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Workers/FillDayList()"
 Exception.Show
 End Sub
-
 
 Private Sub AboveOklad_Chk_Change()
 DayTrigger = True
@@ -696,7 +689,6 @@ Private Sub Amount_Box_Change()
 If Amount_Box.Value <> "" Then Amount_Box.Value = PointFilter(Amount_Box.Value)
 DayTrigger = True
 End Sub
-
 
 Private Sub ChooseWorker_Click()
 On Error GoTo ExceptionControl:
@@ -725,6 +717,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/ChooseWorker_Click()"
 Exception.Show
 End Sub
+
 Private Sub ChooseMate_Button_Click()
 On Error Resume Next
 ObjectsRecall
@@ -764,6 +757,7 @@ End Sub
 Private Sub DateAndWorker_Frame_Click()
 ObjectsRecall
 End Sub
+
 Private Sub JobName_Box_Change()
 On Error GoTo ExceptionControl:
 If (Left(Right(JobName_Box.Value, 4), 1) = "х") Or _
@@ -799,7 +793,6 @@ Private Sub MateChooser_Change()
 If MateChooser.Value = "" Then CopyDay_Button.Enabled = False Else CopyDay_Button.Enabled = True
 End Sub
 
-
 Private Sub Oklad_Box_Change()
 If Oklad_Box.Value <> "" Then Oklad_Box.Value = PointFilter(Oklad_Box.Value, False, False)
 End Sub
@@ -807,6 +800,7 @@ End Sub
 Private Sub PrePay_Box_Change()
 If PrePay_Box.Value <> "" Then PrePay_Box.Value = PointFilter(PrePay_Box.Value, False)
 End Sub
+
 Function isVisible(ByVal Day As Integer) As Boolean
 On Error GoTo ExceptionControl:
 isVisible = False
@@ -846,6 +840,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/Mark()"
 Exception.Show
 End Sub
+
 Sub MakeShitLookGood()
 On Error GoTo ExceptionControl:
 Last = Cells(1, 1).Value
@@ -885,6 +880,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/Print_Button_Click()"
 Exception.Show
 End Sub
+
 Private Sub Rate_Box_Change()
 If Rate_Box.Value <> "" Then Rate_Box.Value = PointFilter(Rate_Box.Value)
 DayTrigger = True
@@ -894,6 +890,7 @@ Private Sub Time_Box_Change()
 If Time_Box.Value <> "" Then Time_Box.Value = PointFilter(Time_Box.Value, False)
 DayTrigger = True
 End Sub
+
 Private Sub Apply_Button_Click()
 ObjectsRecall
 RecordInfo CDay_Box.Value, CJob_Box.Value
@@ -915,6 +912,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/CDay_Box_Change()"
 Exception.Show
 End Sub
+
 Private Sub CJob_Box_Change()
 ReadLine CDay_Box.Value, CJob_Box.Value
 MarkListLine DayList, CJob_Box.Value
@@ -934,8 +932,11 @@ With List
                 Next j
             Else
                 NewColor = OldColor
-                If OldColor = &H80& Then NewColor = &HC000&
-                If OldColor = &HFF& Then NewColor = &H0&
+                If OldColor = &HFF& Then
+                    NewColor = &H0&
+                Else
+                    If OldColor = &H80& Then NewColor = &HC000&
+                End If
                 If NewColor <> OldColor Then
                     .ListItems.Item(i).ForeColor = NewColor
                     For j = 1 To .ListItems.Item(i).ListSubItems.Count
@@ -1085,6 +1086,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/ID_Change()"
 Exception.Show
 End Sub
+
 Private Sub NameChooser_Change()
 On Error GoTo ExceptionControl:
 If NameChooser.Value <> "" Then
@@ -1104,8 +1106,6 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/NameChooser_Change()"
 Exception.Show
 End Sub
-
-
 
 Private Sub Day_Spin_SpinDown()
 On Error GoTo ExceptionControl:
@@ -1128,6 +1128,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/Day_Spin_SpinUp()"
 Exception.Show
 End Sub
+
 Private Sub Workers_Spin_SpinDown()
 On Error Resume Next
 ObjectsRecall
@@ -1157,7 +1158,6 @@ On Error GoTo over:
 ObjectsRecall
 WorkersTreeHolder.Top = -500
 WorkersTreeHolder.Visible = True
-
 If ChosenMate <> 0 Then
     index = ChosenMate
     ChosenMate = 0
@@ -1184,7 +1184,6 @@ On Error GoTo ExceptionControl:
 ObjectsRecall
 If CDay_Box.Value <> "" Then LastWorkersDay = CInt(CDay_Box.Value)
 ''LastPerson = NameChooser.Value
-
 If Not AdminMode Then
     If Not LMMode Then
         RealName_Box.Value = ""
@@ -1193,7 +1192,7 @@ If Not AdminMode Then
         TS = TokenSum()
         Sheets("Каталог").Select
         Cells(2, 6).Value = TS
-        SaveClose (WorkersBase)
+        ProcessFile WorkersBase, "SaveClose"
         PullBase = "pull.xls"
         Destination = Path & PullBase
         Source = Path & WorkersBase
@@ -1227,7 +1226,6 @@ ExceptionControl:
 Exception.Error_Box.Value = "Workers/Logout_Button_Click()"
 Exception.Show
 End Sub
-
 
 Private Sub WorkersTree_Click()
 ConfirmObject = 1

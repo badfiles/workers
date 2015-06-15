@@ -12,7 +12,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Dim Leftt, Income, outcome, Balance, LastName, Namess As String
+Dim Leftt, Income, Outcome, Balance, LastName, Namess As String
 
 
 Function SetCaption(Fil, Side)
@@ -102,8 +102,7 @@ Query.NoButton.SetFocus
 Query.Msg_label.Caption = "После перехода на новый месяц будет невозможно " & SwitchToLastMonth.Caption & ". Продолжаем?"
 Query.Show
 If Query.OK.Value = True Then
-    SaveClose (WorkersBase)
-
+    ProcessFile WorkersBase, "SaveClose"
     ArcMonth = CMonth - 1
     ArcYear = CYear
     If ArcMonth = 0 Then
@@ -111,8 +110,6 @@ If Query.OK.Value = True Then
         ArcYear = CYear - 1
     End If
 
-    ''Name Path + "lWorkers.xls" As Path + "iworkers.xls"
- 
     ArcName = Path + "Archive\Valid\" & MNameEng(ArcMonth) & "_" & ArcYear
     ArcFiles = Path + "lWorkers.xls"
     
@@ -122,7 +119,7 @@ If Query.OK.Value = True Then
     Source = Path & WorkersBase
     FileCopy Source, Destination
 
-    Workbooks.Open Filename:=Path + WorkersBase
+    Workbooks.Open FileName:=Path + WorkersBase
 
     Windows(WorkersBase).Activate
  
@@ -181,8 +178,7 @@ On Error GoTo ExceptionControl:
 If AdminMode Then
     Windows(WorkersBase).Activate
     DropSensitiveData
-    SaveClose (WorkersBase)
-    
+    ProcessFile WorkersBase, "SaveClose"
     PushBase = "push.xls"
     Destination = Path & PushBase
     Source = Path & WorkersBase
@@ -244,7 +240,7 @@ If LMMode Then
     If AdminMode Then
         Windows(WorkersBase).Activate
         DropSensitiveData
-        SaveClose ("lWorkers.xls")
+        ProcessFile "lWorkers.xls", "SaveClose"
         ArcName = Path & "lm.7z"
         ArcFiles = Path & "lWorkers.xls"
         RunCommand (Archiver & " a " & ExchangeKey & " " & ArcName & " " & ArcFiles)
@@ -262,48 +258,48 @@ Else
         RunCommand (Archiver & " e -y " & ExchangeKey & " " & ArcName & " -o" & Path & " " & ArcFiles)
         Kill (ArcName)
     End If
-    Workbooks.Open Filename:=Path & "lWorkers.xls"
+    Workbooks.Open FileName:=Path & "lWorkers.xls"
 End If
 ReportExit = True
 MainInit
 End Sub
-
 
 Private Sub InitWorkers()
 On Error GoTo ExceptionControl:
 Main.Top = 0
 Main.Left = 0
 Windows(WorkersBase).Activate
+With Workers
+    ExtChange = True
+    .CDay_Box.Clear
+    For i = 1 To MDays(CMonth)
+        .CDay_Box.AddItem (i)
+    Next
+    If LastWorkersDay <> 0 Then
+        .CDay_Box.Value = LastWorkersDay
+    Else
+        .CDay_Box.Value = DateTime.Day(DateTime.Date)
+    End If
+    If .CDay_Box.Value > MDays(CMonth) Then .CDay_Box.Value = MDays(CMonth)
+    ExtChange = False
 
-ExtChange = True
-Workers.CDay_Box.Clear
-For i = 1 To MDays(CMonth)
-    Workers.CDay_Box.AddItem (i)
-Next
-If LastWorkersDay <> 0 Then
-    Workers.CDay_Box.Value = LastWorkersDay
-Else
-    Workers.CDay_Box.Value = DateTime.Day(DateTime.Date)
-End If
-If Workers.CDay_Box.Value > MDays(CMonth) Then Workers.CDay_Box.Value = MDays(CMonth)
-ExtChange = False
+    .Label_FullDate.Caption = GetDayName(.CDay_Box.Value) & ", " & .CDay_Box.Value & " " & MName(CMonth, True)
 
-Workers.Label_FullDate.Caption = GetDayName(Workers.CDay_Box.Value) & ", " & Workers.CDay_Box.Value & " " & MName(CMonth, True)
+    .IncomeLabel.Caption = "Заработано за " & MName(CMonth)
+    .OutComeLabel.Caption = "Выдано за " & MName(CMonth)
+    .LeftLabel.Caption = "Остаток за " & MName(LMonth)
 
-Workers.IncomeLabel.Caption = "Заработано за " & MName(CMonth)
-Workers.OutComeLabel.Caption = "Выдано за " & MName(CMonth)
-Workers.LeftLabel.Caption = "Остаток за " & MName(LMonth)
+    .ScanWorkers
+    .ScanJobs
 
-Workers.ScanWorkers
-Workers.ScanJobs
-
-If LMMode Then
-    Workers.LastMonth_Label.Visible = True
-    Workers.MakeReadOnly_Chk.Visible = False
-Else
-    Workers.LastMonth_Label.Visible = False
-    Workers.MakeReadOnly_Chk.Visible = True
-End If
+    If LMMode Then
+        .LastMonth_Label.Visible = True
+        .MakeReadOnly_Chk.Visible = False
+    Else
+        .LastMonth_Label.Visible = False
+        .MakeReadOnly_Chk.Visible = True
+    End If
+End With
 
 Exit Sub
 ExceptionControl:
@@ -324,14 +320,16 @@ If AdminMode Then
     PullOnServer
 
     InitWorkers
-    Workers.WorkersTreeHolder.Visible = True
-    Workers.RealName_Box.Value = ""
-    Workers.NameChooser.Value = ""
-    Workers.RealName_Box.Value = Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Text
-    Workers.NameChooser.Value = Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Key
-    Workers.WorkersTree.Nodes(CInt(Workers.WorkersTree.Tag) + 1).Selected = True
-    Workers.WorkersTreeHolder.Visible = False
-    Workers.Show
+    With Workers
+        .WorkersTreeHolder.Visible = True
+        .RealName_Box.Value = ""
+        .NameChooser.Value = ""
+        .RealName_Box.Value = .WorkersTree.Nodes(CInt(.WorkersTree.Tag) + 1).Text
+        .NameChooser.Value = .WorkersTree.Nodes(CInt(.WorkersTree.Tag) + 1).Key
+        .WorkersTree.Nodes(CInt(.WorkersTree.Tag) + 1).Selected = True
+        .WorkersTreeHolder.Visible = False
+        .Show
+    End With
 Else
     If Not LMMode Then
         Windows(WorkersBase).Activate
@@ -347,7 +345,7 @@ Else
         Destination = Path & "tWorkers.xls"
         Source = Path & PushBase
 
-        If Not IsOpened("push.xls") Then Workbooks.Open Filename:=Path + PushBase
+        If Not IsOpened("push.xls") Then Workbooks.Open FileName:=Path + PushBase
         Windows(PushBase).Activate
         Sheets("Каталог").Select
 
@@ -363,17 +361,19 @@ Else
         End If
     End If
     InitWorkers
-    Workers.MakeReadOnly_Chk.Visible = False
-    If LMMode Then
-        Workers.Apply_Button.Enabled = False
-        Workers.Clear_Button.Enabled = False
-        Workers.Delete_Button.Enabled = False
-        Workers.ChooseMate_Button.Enabled = False
-    End If
-    Workers.Show
+    With Workers
+        .MakeReadOnly_Chk.Visible = False
+        If LMMode Then
+            .Apply_Button.Enabled = False
+            .Clear_Button.Enabled = False
+            .Delete_Button.Enabled = False
+            .ChooseMate_Button.Enabled = False
+            .Select_Button.Enabled = False
+        End If
+        .Show
+    End With
 End If
-'If LastPerson <> "" Then Workers.NameChooser.Value = LastPerson Else _
-'                         Workers.NameChooser.Value = Workers.NameChooser.List(0)
+
 Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Form/Workers_Button_Click()"
@@ -397,8 +397,7 @@ HiddenCount = 0
 Sheets("Сотрудники").Select
 Range("A3:G100").Select
 Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
-    OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
-    DataOption1:=xlSortNormal
+    OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, DataOption1:=xlSortNormal
         
 WeHaveWorkers = Cells(1, 2).Value
 
@@ -411,7 +410,7 @@ For i = 3 To WeHaveWorkers + 2
         If Cells(1, 1).Value <> "" Then LastDay = "(по " & Cells(1, 1).Value & "-e число)" Else LastDay = "#нет данных#"
         Leftt = Cells(2, 10).Value
         Income = Cells(3, 10).Value
-        outcome = Cells(3, 11).Value
+        Outcome = Cells(3, 11).Value
         Balance = Cells(1, 10).Value
         Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
         Sheets("Отчёт").Select
@@ -421,7 +420,7 @@ For i = 3 To WeHaveWorkers + 2
         Cells(RepOffset, 2) = Namess
         Cells(RepOffset, 3) = Leftt
         Cells(RepOffset, 4) = Income
-        Cells(RepOffset, 5) = outcome
+        Cells(RepOffset, 5) = Outcome
         Cells(RepOffset, 6) = Balance
         Cells(RepOffset, 7) = LastDay
         Range(Cells(RepOffset, 6), Cells(RepOffset, 6)).Select
@@ -464,8 +463,7 @@ HiddenCount = 0
 Sheets("Сотрудники").Select
 Range("A3:G100").Select
 Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
-    OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, _
-    DataOption1:=xlSortNormal
+    OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, DataOption1:=xlSortNormal
 
 WeHaveWorkers = Cells(1, 2).Value
 For i = 3 To WeHaveWorkers + 2
@@ -492,12 +490,14 @@ For i = 3 To WeHaveWorkers + 2
             Cells(RepOffset, Day(j) + 2).Select
             Selection.EntireColumn.Hidden = False
         Next j
-    
         Range(Cells(RepOffset, 2), Cells(RepOffset, 34)).Select
         FillAndBorders (MarkLine)
         MarkLine = Not MarkLine
     End If
-Next
+Next i
+
+Erase Day
+Erase Av
 
 If NoPrintAvReport_Chk.Value = True Then
     Sheets("АвансовыйОтчёт").PrintOut
