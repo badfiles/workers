@@ -17,7 +17,7 @@ Public Const FtpStorageName = "10.10.11.1"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
 
-Public Const Version = "U-3.4.116"
+Public Const Version = "U-3.4.118"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -41,14 +41,39 @@ Exception.Error_Box.Value = "Main/ProcessFile()"
 Exception.Show
 End Sub
 
-Public Sub RunCommand(ByVal Command As String)
+Public Sub RunCommand(ByVal Command As String, Optional ByVal WaitForExit As Boolean = True)
 On Error GoTo over:
 pid = Shell(Command, vbMinimizedNoFocus)
-Do
-    Sleep (500)
-    AppActivate (pid)
-Loop Until False
+If WaitForExit Then
+    Do
+        Sleep (500)
+        AppActivate (pid)
+    Loop Until False
 over:
+End If
+End Sub
+Public Sub LogAction(ByVal Action As String)
+On Error GoTo ExceptionControl:
+
+If AdminMode Then
+    Actor = "Admin"
+    Column = 19
+Else
+    Actor = "User"
+    Column = 21
+End If
+For i = InfoOffset To 600
+    If Cells(i, Column).Value = "" Then
+        Cells(i, Column).Value = DateTime.Date & " " & DateTime.Time
+        Cells(i, Column + 1).Value = Actor & " " & Action
+        Exit Sub
+    End If
+Next i
+
+Exit Sub
+ExceptionControl:
+Exception.Error_Box.Value = "Main/LogAction()"
+Exception.Show
 End Sub
 
 Public Function AfterRecord(ListName)
@@ -283,9 +308,9 @@ Exception.Error_Box.Value = "Main/GetWorkerID()"
 Exception.Show
 End Function
 
-Public Function CutZ(ByVal Val As String) As Integer
+Public Function CutZ(ByVal Str As String) As Integer
 On Error GoTo ExceptionControl:
-CutZ = CInt(Left(Val, Len(Val) - 1))
+If Str <> "" Then CutZ = CInt(Left(Str, Len(Str) - 1))
 
 Exit Function
 ExceptionControl:
@@ -293,6 +318,22 @@ Exception.Error_Box.Value = "Main/CutZ()"
 Exception.Show
 End Function
 
+Public Function ReplaceToAlternate(ByVal JobName As String, ByVal AltDiam As Integer) As String
+On Error GoTo ExceptionControl:
+If AltDiam > 0 Then
+    JobNameWithoutExDiam = Mid(JobName, 1, Len(JobName) - 3)
+    If Not ((Right(JobNameWithoutExDiam, 1) = "x") Or (Right(JobNameWithoutExDiam, 1) = "х")) Then _
+     JobNameWithoutExDiam = Mid(JobName, 1, Len(JobName) - 4)
+    ReplaceToAlternate = JobNameWithoutExDiam & CStr(AltDiam)
+Else
+    ReplaceToAlternate = JobName
+End If
+
+Exit Function
+ExceptionControl:
+Exception.Error_Box.Value = "Main/ReplaceToAlternate()"
+Exception.Show
+End Function
 Public Sub PullOnServer()
 On Error GoTo ExceptionControl:
 Dim PushArray(), PullArray(), CommentArray() As Boolean
@@ -351,9 +392,9 @@ Else
                            If Cells(j, 2).Value <> "" Then PullArray(j) = True
                            If Cells(j, 13).Value <> "" Then CommentArray(j) = True
                         Next j
-                     
+                        Application.Calculation = xlCalculationManual
                         For j = InfoOffset To Dimention
-                           If (PushArray(j) And PullArray(j)) = True Then
+                            If (PushArray(j) And PullArray(j)) = True Then
                                 Windows(PullBase).Activate
                                 Sheets(i).Select
                                 CopyAlternateDiam = Cells(j, 14).Value
@@ -369,6 +410,7 @@ Else
                                 Cells(j, 2).Select
                                 Selection.EntireRow.Hidden = False
                                 If Cells(j, 10).FormulaR1C1 = "" Then Cells(j, 10).FormulaR1C1 = "=SUM(RC[-1]:R[8]C[-1])"
+                                LogAction ("Import " & CStr(j))
                             Else
                                 If CommentArray(j) Then
                                     Windows(PullBase).Activate
@@ -377,9 +419,17 @@ Else
                                     Windows(WorkersBase).Activate
                                     Sheets(DesiredDestination).Select
                                     Cells(j, 13).Value = CopyComment
+                                    LogAction ("ImportComment " & CStr(j))
                                 End If
                             End If
                         Next j
+                        Windows(PullBase).Activate
+                        Sheets(i).Select
+                        Range(Cells(InfoOffset, 21), Cells(600, 22)).Copy
+                        Windows(WorkersBase).Activate
+                        Sheets(DesiredDestination).Select
+                        Cells(InfoOffset, 21).PasteSpecial
+                        Application.Calculation = xlCalculationAutomatic
                         If LMMode Then TransferBalance DesiredDestination, Cells(1, 10).Value
                     End If
                 End If
@@ -422,6 +472,8 @@ If AdminMode Then
     Workers.OnScreen_Chk.Enabled = True
     Workers.Oklad_Box.Enabled = True
     Workers.Logout_Button.Visible = False
+    Main.Reports_Button.Enabled = True
+    Main.Chamber_Button.Enabled = True
 Else
     WorkersBase = "tWorkers.xls"
     Main.Caption = "ООО ""Диск"" Система расчёта сдельной оплаты [Рабочее место] " & Version
@@ -431,12 +483,12 @@ Else
     Workers.Logout_Button.Visible = True
     Workers.AboveOklad_Chk.Visible = False
     Workers.SelectUpdatesOnly.Visible = False
+    Workers.Log_Button.Visible = False
     Main.GenerateNextMonth.Enabled = False
     Main.SaveAndClose.Enabled = False
     Main.SaveState.Enabled = False
     Main.Setup_Button.Enabled = False
-    Main.FeeReport_Button.Enabled = False
-    Main.AvReport_Button.Enabled = False
+    Main.Reports_Button.Enabled = False
     Main.Chamber_Button.Enabled = False
 End If
 
@@ -488,6 +540,9 @@ Public Sub MainInit()
 On Error Resume Next
 Application.EnableCancelKey = xlDisabled
 Application.ScreenUpdating = False
+Application.EnableEvents = False
+Application.DisplayStatusBar = False
+Application.DisplayAlerts = False
 Main.Top = 0
 Main.Left = 0
 Main.Width = GetSystemMetrics32(0) * 72 \ 96

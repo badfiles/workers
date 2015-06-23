@@ -31,6 +31,7 @@ Private Sub Block_Button_Click()
 BlockIt.Show
 End Sub
 
+
 Private Sub Chamber_Button_Click()
 FiltersReady = 0
 
@@ -144,8 +145,7 @@ If Query.OK.Value = True Then
         Cells(2, 10).Value = Cells(1, 10).Value
         Cells(1, 1).ClearContents
         Range("b6:k284").ClearContents
-        Range("m6:o284").ClearContents
-        Rows("6:284").Select
+        Range("m6:x600").ClearContents
         Selection.EntireRow.Hidden = True
     Next
     ReportExit = True
@@ -162,6 +162,8 @@ Sub DropSensitiveData()
 On Error GoTo ExceptionControl:
     Sheets("АвансовыйОтчёт").Select
     Range("a7:bb684").ClearContents
+    Sheets("Производство").Select
+    Range("a7:bb684").ClearContents
     Sheets("Отчёт").Select
     Range("a7:bb684").ClearContents
     Sheets("Каталог").Select
@@ -171,7 +173,6 @@ ExceptionControl:
 Exception.Error_Box.Value = "Form/DropSensitiveData()"
 Exception.Show
 End Sub
-
 
 Sub DoneForNow(ByVal CloseBase As Boolean)
 On Error GoTo ExceptionControl:
@@ -195,9 +196,9 @@ If AdminMode Then
         ArcName = Path + "Archive\LastState.7z"
         ArcFiles = Path + "*Workers.xls"
         RunCommand (Archiver & " a " & ArcKey & " " & ArcName & " " & ArcFiles)
-        a = Shell("ftp -v -s:" & Path & "ftp_server_send_all " & FtpStorageName, vbMinimizedNoFocus)
+        RunCommand "ftp -v -s:" & Path & "ftp_server_send_all " & FtpStorageName, False
     Else
-        a = Shell("ftp -v -s:" & Path & "ftp_server_send " & FtpStorageName, vbMinimizedNoFocus)
+        RunCommand "ftp -v -s:" & Path & "ftp_server_send " & FtpStorageName, False
     End If
 End If
 
@@ -205,6 +206,10 @@ Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Form/DoneForNow()"
 Exception.Show
+End Sub
+
+Private Sub Reports_Button_Click()
+Reports.Show
 End Sub
 
 Private Sub RunTC_Button_Click()
@@ -378,173 +383,6 @@ Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Form/Workers_Button_Click()"
 Exception.Show
-End Sub
-
-Private Sub FeeReport_Button_Click()
-On Error GoTo ExceptionControl:
-Windows(WorkersBase).Activate
-Sheets("Отчёт").Select
-
-Selection.Font.Bold = False
-Range("B7:G100").Clear
-
-Cells(1, 3).Value = "Отчёт по зарплате за  " & MName(CMonth)
-Cells(6, 3).Value = "Остаток за " & MName(LMonth)
-Cells(6, 5).Value = "Выдано за " & MName(CMonth)
-
-MarkLine = True
-HiddenCount = 0
-Sheets("Сотрудники").Select
-Range("A3:G100").Select
-Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
-    OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, DataOption1:=xlSortNormal
-        
-WeHaveWorkers = Cells(1, 2).Value
-
-For i = 3 To WeHaveWorkers + 2
-    Sheets("Сотрудники").Select
-    If Cells(i, 4).Value = 1 Then
-        HiddenCount = HiddenCount + 1
-    Else
-        Sheets(Cells(i, 3).Value).Select
-        If Cells(1, 1).Value <> "" Then LastDay = "(по " & Cells(1, 1).Value & "-e число)" Else LastDay = "#нет данных#"
-        Leftt = Cells(2, 10).Value
-        Income = Cells(3, 10).Value
-        Outcome = Cells(3, 11).Value
-        Balance = Cells(1, 10).Value
-        Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
-        Sheets("Отчёт").Select
-        Cells(3, 4) = DateTime.Date
-        Cells(3, 5) = DateTime.TIME
-        RepOffset = 4 + i - HiddenCount
-        Cells(RepOffset, 2) = Namess
-        Cells(RepOffset, 3) = Leftt
-        Cells(RepOffset, 4) = Income
-        Cells(RepOffset, 5) = Outcome
-        Cells(RepOffset, 6) = Balance
-        Cells(RepOffset, 7) = LastDay
-        Range(Cells(RepOffset, 6), Cells(RepOffset, 6)).Select
-        If Balance < 0 Then Selection.Font.Bold = True
-        Range(Cells(RepOffset, 2), Cells(RepOffset, 6)).Select
-        FillAndBorders (MarkLine)
-        MarkLine = Not MarkLine
-    End If
-Next
-
-If NoPrintFeeReport_Chk.Value = True Then
-    Sheets("Отчёт").PrintOut
-Else
-    Main.Hide
-    ReportExit = True
-End If
-
-Exit Sub
-ExceptionControl:
-Exception.Error_Box.Value = "Form/FeeReport_Button_Click()"
-Exception.Show
-End Sub
-
-Private Sub AvReport_Button_Click()
-Dim Day(1 To 31) As Integer, Av(1 To 31) As String
-On Error GoTo ExceptionControl:
-Windows(WorkersBase).Activate
-Sheets("АвансовыйОтчёт").Select
-Cells(2, 2) = DateTime.Date
-Cells(3, 2) = DateTime.TIME
-
-Range("B7:AH200").Clear
-Range("C7:AG7").Select
-Selection.EntireColumn.Hidden = True
-
-Cells(1, 2).Value = "Авансовый отчёт за " & MName(CMonth)
-
-MarkLine = True
-HiddenCount = 0
-Sheets("Сотрудники").Select
-Range("A3:G100").Select
-Selection.Sort Key1:=Range("B3"), Order1:=xlAscending, Header:=xlGuess, _
-    OrderCustom:=1, MatchCase:=False, Orientation:=xlTopToBottom, DataOption1:=xlSortNormal
-
-WeHaveWorkers = Cells(1, 2).Value
-For i = 3 To WeHaveWorkers + 2
-    Sheets("Сотрудники").Select
-    If Cells(i, 4).Value = 1 Then
-        HiddenCount = HiddenCount + 1
-    Else
-        Sheets(Cells(i, 3).Value).Select
-        Namess = Cells(1, 2).Value & " " & Cells(2, 2).Value
-        p = 0
-        For j = InfoOffset To InfoOffset + 31 * Lines - Lines Step Lines
-            If Cells(j, 11).Value <> 0 Then
-                p = p + 1
-                Day(p) = Cells(j, 1).Value
-                Av(p) = CStr(Cells(j, 11).Value)
-            End If
-        Next j
-        Sheets("АвансовыйОтчёт").Select
-        RepOffset = 4 + i - HiddenCount
-        Cells(RepOffset, 2).Value = Namess
-        Cells(RepOffset, 34).FormulaR1C1 = "=SUM(RC[-31]:RC[-1])"
-        For j = 1 To p
-            Cells(RepOffset, Day(j) + 2).Value = Av(j)
-            Cells(RepOffset, Day(j) + 2).Select
-            Selection.EntireColumn.Hidden = False
-        Next j
-        Range(Cells(RepOffset, 2), Cells(RepOffset, 34)).Select
-        FillAndBorders (MarkLine)
-        MarkLine = Not MarkLine
-    End If
-Next i
-
-Erase Day
-Erase Av
-
-If NoPrintAvReport_Chk.Value = True Then
-    Sheets("АвансовыйОтчёт").PrintOut
-Else
-     Main.Hide
-     ReportExit = True
-End If
-
-Exit Sub
-ExceptionControl:
-Exception.Error_Box.Value = "Form/AvReport_Button_Click()"
-Exception.Show
-End Sub
-Private Sub FillAndBorders(ByVal MarkLine As Boolean)
-Selection.NumberFormat = "#,##0.00"
-With Selection.Borders(xlEdgeLeft)
-    .LineStyle = xlDot
-    .Weight = xlThin
-    .ColorIndex = xlAutomatic
-End With
-With Selection.Borders(xlEdgeTop)
-    .LineStyle = xlDot
-    .Weight = xlThin
-    .ColorIndex = xlAutomatic
-End With
-With Selection.Borders(xlEdgeBottom)
-    .LineStyle = xlDot
-    .Weight = xlThin
-    .ColorIndex = xlAutomatic
-End With
-With Selection.Borders(xlEdgeRight)
-    .LineStyle = xlDot
-    .Weight = xlThin
-    .ColorIndex = xlAutomatic
-End With
-With Selection.Borders(xlInsideVertical)
-    .LineStyle = xlDot
-    .Weight = xlThin
-    .ColorIndex = xlAutomatic
-End With
-If MarkLine Then
-    With Selection.Interior
-        .ColorIndex = 15
-        .Pattern = xlSolid
-        .PatternColorIndex = xlAutomatic
-    End With
-End If
 End Sub
 
 Private Sub Setup_Button_Click()
