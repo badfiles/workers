@@ -216,7 +216,7 @@ End Sub
 Sub RecordLine(ByVal Day, ByVal Job, Optional ByVal Mark As Boolean = False)
 Dim Index, i, ADLen As Integer
 On Error GoTo ExceptionControl:
-If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
+If NameChooser.Value <> "" And CDay_Box.MatchFound Then Sheets(NameChooser.Value).Select Else Exit Sub
 Index = Job + InfoOffset + Lines * (Day - 1) - 1
 
 If Mark Then
@@ -323,7 +323,7 @@ End Sub
 
 Sub DeleteLine(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
-If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
+If NameChooser.Value <> "" And CDay_Box.MatchFound Then Sheets(NameChooser.Value).Select Else Exit Sub
 Index = Job + InfoOffset + Lines * (Day - 1) - 1
 
 'OldAmount = Cells(index, 4)
@@ -364,7 +364,7 @@ End Sub
 Sub ClearDay(ByVal Day)
 Dim Index, i As Integer
 On Error GoTo ExceptionControl:
-If NameChooser.Value <> "" Then Sheets(NameChooser.Value).Select Else Exit Sub
+If NameChooser.Value <> "" And CDay_Box.MatchFound Then Sheets(NameChooser.Value).Select Else Exit Sub
 Index = InfoOffset + Lines * (Day - 1)
 If CInt(Cells(1, 1)) = Day Then Cells(1, 1).ClearContents
 For i = 0 To Lines - 1
@@ -388,8 +388,7 @@ End If
 Range(Cells(Index, 13), Cells(Index + Lines - 1, 15)).ClearContents
 Cells(Index, 11) = ""
 Cells(Index, 10) = ""
-Range(Cells(Index, 2), Cells(Index + Lines - 1, 2)).Select
-Selection.EntireRow.Hidden = True
+Range(Cells(Index, 2), Cells(Index + Lines - 1, 2)).EntireRow.Hidden = True
 LogAction ("ClearDay " & CStr(Day))
 Application.Calculation = xlCalculationAutomatic
 ReadLockedInfo
@@ -412,7 +411,7 @@ End Sub
 
 Sub ReadLine(ByVal Day, ByVal Job)
 On Error GoTo ExceptionControl:
-If Day = "" Or NameChooser.Value = "" Then Exit Sub
+If Day = "" Or NameChooser.Value = "" Or Not CDay_Box.MatchFound Then Exit Sub
     
 inRead = True
 Index = Job + InfoOffset + Lines * (Day - 1) - 1
@@ -559,8 +558,10 @@ Exception.Error_Box.Value = "Workers/Div_Button_Click()"
 Exception.Show
 End Sub
 
-
 Private Sub Log_Button_Click()
+Dim i, Stopp, Count As Integer
+On Error GoTo ExceptionControl:
+ObjectsRecall
 If LogHolder.Visible = True Then
     LogHolder.Visible = False
 Else
@@ -571,7 +572,10 @@ Else
         Count = 1
         .ListItems.Clear
         .Sorted = False
-        For i = InfoOffset To 600
+        Stopp = CInt(Cells(InfoOffset - 1, 19).Value)
+        If CInt(Cells(InfoOffset - 1, 21).Value) > Stopp Then Stopp = CInt(Cells(InfoOffset - 1, 21).Value)
+        If Stopp = 0 Then Stopp = 600
+        For i = InfoOffset To InfoOffset + Stopp
             If Cells(i, 19).Value = "" And Cells(i, 21).Value = "" Then
                 Exit For
             End If
@@ -589,6 +593,11 @@ Else
         .Sorted = True
         LogHolder.Top = 6
     End With
+
+Exit Sub
+ExceptionControl:
+Exception.Error_Box.Value = "Workers/Log_Button_Click()"
+Exception.Show
 End If
 End Sub
 
@@ -947,7 +956,7 @@ End Sub
 
 Private Sub CDay_Box_Change()
 On Error GoTo ExceptionControl:
-If (NameChooser.Value <> "") And (Not ExtChange) Then
+If (NameChooser.Value <> "") And (Not ExtChange) And CDay_Box.MatchFound Then
     ObjectsRecall
     FillDayList (CDay_Box.Value)
     ReadLine Workers.CDay_Box.Value, Workers.CJob_Box.Value
@@ -955,7 +964,6 @@ If (NameChooser.Value <> "") And (Not ExtChange) Then
     Workers.Caption = Workers.RealName_Box.Value & ": " & Workers.Label_FullDate.Caption
     MarkListLine ControlList, CDay_Box.Value
 End If
-
 Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Workers/CDay_Box_Change()"
@@ -1064,8 +1072,7 @@ If NameChooser.Value <> "" And MateChooser.Value <> "" Then
             Cells(Index, 2).PasteSpecial
             Cells(Index, 14).Value = CopyAlternateDiam
             Cells(Index, 15).Value = MarkFlag
-            Cells(Index, 2).Select
-            Selection.EntireRow.Hidden = False
+            Cells(Index, 2).EntireRow.Hidden = False
         End If
     Next i
     Index = InfoOffset + Lines * (CDay_Box.Value - 1)
@@ -1147,6 +1154,7 @@ If NameChooser.Value <> "" Then
     ReadLockedInfo
     Workers.Caption = RealName_Box.Value & ": " & Label_FullDate.Caption
     FillDayList (CDay_Box.Value)
+    If NameChooser.Value <> "Образец" And Not AdminMode Then LogAction ("Login with " & BlockIt.RcvHash)
     If NameChooser.Value = MateChooser.Value Or Not AdminMode Then
         MateChooser.Value = ""
         MateName_Box.Value = ""
@@ -1290,10 +1298,12 @@ If WorkersTree.SelectedItem.Key <> "" And WorkersTree.SelectedItem.Tag <> "Cat" 
         If Not AdminMode Then
             BlockIt.Pass = WorkersTree.SelectedItem.Tag
             BlockIt.PassOK = False
+            BlockIt.AdminOverrides = True
+            BlockIt.SupervisorOverrides = True
             BlockIt.Password_Box.SetFocus
             BlockIt.Show
         End If
-        If (BlockIt.PassOK) Or (AdminMode) Then
+        If BlockIt.PassOK Or AdminMode Then
             If WorkersTree.SelectedItem.Key = MateChooser.Value Then
                 MateChooser.Value = ""
                 MateName_Box.Value = ""
@@ -1328,6 +1338,8 @@ End Sub
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
 BlockIt.Pass = PinAdmin
 BlockIt.PassOK = False
+BlockIt.AdminOverrides = False
+BlockIt.SupervisorOverrides = False
 BlockIt.Password_Box.SetFocus
 BlockIt.Show
 If BlockIt.PassOK = False And CloseMode = 0 Then Cancel = 1

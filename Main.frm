@@ -14,7 +14,6 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim Leftt, Income, Outcome, Balance, LastName, Namess As String
 
-
 Function SetCaption(Fil, Side)
 ''Protect
 If Side = 1 Then
@@ -26,71 +25,9 @@ If Side = -1 Then
 End If
 End Function
 
-
 Private Sub Block_Button_Click()
 BlockIt.Show
 End Sub
-
-
-Private Sub Chamber_Button_Click()
-FiltersReady = 0
-
-Orders.CDay_Box.Clear
-Orders.Day_Filter.Clear
-Orders.Day_Filter.AddItem ("Все")
-
-For i = 1 To MDays(CMonth)
-   Orders.CDay_Box.AddItem (i)
-   Orders.Day_Filter.AddItem (i)
-Next
-Orders.CDay_Box.Value = DateTime.Day(DateTime.Date)
-Orders.Day_Filter.Value = "Все"
-
-Orders.Dol_Chooser.Clear
-Orders.Dol_Chooser.AddItem ("Все")
-Orders.Dol_Chooser.AddItem ("Долги")
-Orders.Dol_Chooser.Value = "Долги"
-
-Orders.Opl_Chooser.Clear
-Orders.Opl_Chooser.AddItem ("Все")
-Orders.Opl_Chooser.AddItem ("нал")
-Orders.Opl_Chooser.AddItem ("б/н")
-Orders.Opl_Chooser.Value = "б/н"
-
-Orders.Opl_Chooser_w.Clear
-Orders.Opl_Chooser_w.AddItem ("нал")
-Orders.Opl_Chooser_w.AddItem ("б/н")
-Orders.Opl_Chooser_w.Value = "б/н"
-
-Orders.RoundType.Clear
-Orders.RoundType.AddItem ("в большую сторону")
-Orders.RoundType.AddItem ("в меньшую сторону")
-Orders.RoundType.Value = "в большую сторону"
-
-Orders.Label_FullDate.Caption = GetDayName(Orders.CDay_Box.Value) & ", " & _
-                            Orders.CDay_Box.Value & " " & MName(CMonth, True)
-
-Orders.ScanOrgs (WorkersBase)
-Orders.ScanJobs
-Orders.ScanOCats
-FiltersReady = 1
-Orders.Region_Filter.Value = "Все"
-
-Orders.OrgName_Box.Value = Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Text
-Orders.oID.Value = CutZ(Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Key)
-
-Orders.OrgsTreeHolder.Visible = True
-Orders.OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Selected = True
-Orders.oCat.Value = CutZ(Orders.OrgsTree.SelectedItem.Parent.Key)
-Orders.OrgsTreeHolder.Visible = False
-
-'If LastPerson <> "" Then Workers.NameChooser.Value = LastPerson Else _
-'                         Workers.NameChooser.Value = Workers.NameChooser.List(0)
-
-Orders.Show
-
-End Sub
-
 
 Private Sub GenerateNextMonth_Click()
 On Error GoTo ExceptionControl:
@@ -145,8 +82,8 @@ If Query.OK.Value = True Then
         Cells(2, 10).Value = Cells(1, 10).Value
         Cells(1, 1).ClearContents
         Range("b6:k284").ClearContents
-        Range("m6:x600").ClearContents
-        Selection.EntireRow.Hidden = True
+        Range(Columns(13), Columns(22)).ClearContents
+        Range(Rows(6), Rows(284)).EntireRow.Hidden = True
     Next
     ReportExit = True
     MainInit
@@ -161,11 +98,11 @@ End Sub
 Sub DropSensitiveData()
 On Error GoTo ExceptionControl:
     Sheets("АвансовыйОтчёт").Select
-    Range("a7:bb684").ClearContents
+    Range(Rows(7), Rows(1000)).ClearContents
     Sheets("Производство").Select
-    Range("a7:bb684").ClearContents
+    Range(Rows(7), Rows(1000)).ClearContents
     Sheets("Отчёт").Select
-    Range("a7:bb684").ClearContents
+    Range(Rows(7), Rows(1000)).ClearContents
     Sheets("Каталог").Select
 
 Exit Sub
@@ -209,12 +146,28 @@ Exception.Show
 End Sub
 
 Private Sub Reports_Button_Click()
-Reports.Show
+With Reports
+    .CDay_Box.Clear
+    For i = 1 To MDays(CMonth)
+        .CDay_Box.AddItem (i)
+    Next
+        .CDay_Box.Value = 1
+
+    .Mark_Chooser.Clear
+    .Mark_Chooser.AddItem ("Все")
+    .Mark_Chooser.AddItem ("Выделенные")
+    .Mark_Chooser.AddItem ("Без выделения")
+    .Mark_Chooser.Value = "Без выделения"
+
+    .Show
+End With
 End Sub
 
 Private Sub RunTC_Button_Click()
 BlockIt.Pass = PinAdmin
 BlockIt.PassOK = False
+BlockIt.AdminOverrides = False
+BlockIt.SupervisorOverrides = False
 BlockIt.Password_Box.SetFocus
 BlockIt.Show
 If BlockIt.PassOK Then a = Shell("c:\Program Files\WINCMD\totalcmd.exe", vbMaximizedFocus)
@@ -387,27 +340,97 @@ End Sub
 
 Private Sub Setup_Button_Click()
 On Error GoTo ExceptionControl:
-Setup.ScanWorkers (WorkersBase)
-Setup.ScanWCats
-Setup.ScanJobs
-Setup.ScanOrgs
-Setup.ScanJCats
-Setup.ScanOCats
-Setup.NameChooser.Value = Setup.WorkersTree.Nodes(CInt(Setup.WorkersTree.Tag) + 1).Key
-Setup.jID.Value = CutZ(Setup.JobsTree.Nodes(CInt(Setup.JobsTree.Tag) + 1).Key)
-Setup.oID.Value = CutZ(Setup.OrgsTree.Nodes(CInt(Setup.OrgsTree.Tag) + 1).Key)
-Setup.cCatChooser.Value = Setup.cCatChooser.List(1)
-Setup.jCatChooser.Value = Setup.jCatChooser.List(1)
-Setup.oCatChooser.Value = Setup.oCatChooser.List(1)
-Setup.Show
+With Setup
+    .ScanWorkers (WorkersBase)
+    .ScanWCats
+    .ScanJobs
+    .ScanOrgs
+    .ScanJCats
+    .ScanOCats
+    .NameChooser.Value = .WorkersTree.Nodes(CInt(.WorkersTree.Tag) + 1).Key
+    .jID.Value = CutZ(.JobsTree.Nodes(CInt(.JobsTree.Tag) + 1).Key)
+    .oID.Value = CutZ(.OrgsTree.Nodes(CInt(.OrgsTree.Tag) + 1).Key)
+    .cCatChooser.Value = .cCatChooser.List(1)
+    .jCatChooser.Value = .jCatChooser.List(1)
+    .oCatChooser.Value = .oCatChooser.List(1)
+    .Show
+End With
 
 Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Form/Setup_Button_Click()"
 Exception.Show
 End Sub
+
+Private Sub Chamber_Button_Click()
+On Error GoTo ExceptionControl:
+
+FiltersReady = 0
+With Orders
+    .CDay_Box.Clear
+    .Day_Filter.Clear
+    .Day_Filter.AddItem ("Все")
+
+    For i = 1 To MDays(CMonth)
+        .CDay_Box.AddItem (i)
+        .Day_Filter.AddItem (i)
+    Next
+    .CDay_Box.Value = DateTime.Day(DateTime.Date)
+    .Day_Filter.Value = "Все"
+
+    .Dol_Chooser.Clear
+    .Dol_Chooser.AddItem ("Все")
+    .Dol_Chooser.AddItem ("Долги")
+    .Dol_Chooser.Value = "Долги"
+
+    .Opl_Chooser.Clear
+    .Opl_Chooser.AddItem ("Все")
+    .Opl_Chooser.AddItem ("нал")
+    .Opl_Chooser.AddItem ("б/н")
+    .Opl_Chooser.Value = "б/н"
+
+    .Opl_Chooser_w.Clear
+    .Opl_Chooser_w.AddItem ("нал")
+    .Opl_Chooser_w.AddItem ("б/н")
+    .Opl_Chooser_w.Value = "б/н"
+
+    .RoundType.Clear
+    .RoundType.AddItem ("в большую сторону")
+    .RoundType.AddItem ("в меньшую сторону")
+    .RoundType.Value = "в большую сторону"
+
+    .Label_FullDate.Caption = GetDayName(.CDay_Box.Value) & ", " & .CDay_Box.Value & " " & MName(CMonth, True)
+
+    .ScanOrgs (WorkersBase)
+    .ScanJobs
+    .ScanOCats
+    FiltersReady = 1
+    .Region_Filter.Value = "Все"
+
+    .OrgName_Box.Value = .OrgsTree.Nodes(CInt(.OrgsTree.Tag) + 1).Text
+    .oID.Value = CutZ(.OrgsTree.Nodes(CInt(.OrgsTree.Tag) + 1).Key)
+
+    .OrgsTreeHolder.Visible = True
+    .OrgsTree.Nodes(CInt(Orders.OrgsTree.Tag) + 1).Selected = True
+    .oCat.Value = CutZ(Orders.OrgsTree.SelectedItem.Parent.Key)
+    .OrgsTreeHolder.Visible = False
+
+'If LastPerson <> "" Then Workers.NameChooser.Value = LastPerson Else _
+'                         Workers.NameChooser.Value = Workers.NameChooser.List(0)
+
+    .Show
+End With
+
+Exit Sub
+ExceptionControl:
+Exception.Error_Box.Value = "Form/Chamber_Button_Click()"
+Exception.Show
+End Sub
+
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
 BlockIt.Pass = PinAdmin
+BlockIt.AdminOverrides = False
+BlockIt.SupervisorOverrides = False
 BlockIt.PassOK = False
 BlockIt.Password_Box.SetFocus
 BlockIt.Show

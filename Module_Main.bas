@@ -11,13 +11,14 @@ Public Const Lines = 9
 Public Const FirstWorkersSheet = 9
 
 'Public Const PinAdmin = "free"
+'Public Const PinSuperV = "free"
 
 Public Const Archiver = "c:\Program Files\7-zip\7z.exe"
 Public Const FtpStorageName = "10.10.11.1"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
 
-Public Const Version = "U-3.4.118"
+Public Const Version = "U-3.4.119"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -52,7 +53,9 @@ If WaitForExit Then
 over:
 End If
 End Sub
+
 Public Sub LogAction(ByVal Action As String)
+Dim Start, i, Column As Integer
 On Error GoTo ExceptionControl:
 
 If AdminMode Then
@@ -62,11 +65,13 @@ Else
     Actor = "User"
     Column = 21
 End If
-For i = InfoOffset To 600
+Start = InfoOffset + CInt(Cells(InfoOffset - 1, Column).Value)
+For i = Start To Start + 200
     If Cells(i, Column).Value = "" Then
         Cells(i, Column).Value = DateTime.Date & " " & DateTime.Time
         Cells(i, Column + 1).Value = Actor & " " & Action
-        Exit Sub
+        Cells(InfoOffset - 1, Column).Value = i - InfoOffset + 1
+        Exit For
     End If
 Next i
 
@@ -334,6 +339,7 @@ ExceptionControl:
 Exception.Error_Box.Value = "Main/ReplaceToAlternate()"
 Exception.Show
 End Function
+
 Public Sub PullOnServer()
 On Error GoTo ExceptionControl:
 Dim PushArray(), PullArray(), CommentArray() As Boolean
@@ -377,8 +383,7 @@ Else
                         ReDim CommentArray(InfoOffset To Dimention)
 
                         For j = InfoOffset To Dimention
-                            PushArray(j) = False
-                            If Cells(j, 3).Value = "" Then PushArray(j) = True
+                            If Cells(j, 3).Value = "" Then PushArray(j) = True Else PushArray(j) = False
                         Next j
                            
                         Sheets("Сотрудники").Select
@@ -387,10 +392,8 @@ Else
                         Sheets(i).Select
                            
                         For j = InfoOffset To Dimention
-                           PullArray(j) = False
-                           CommentArray(j) = False
-                           If Cells(j, 2).Value <> "" Then PullArray(j) = True
-                           If Cells(j, 13).Value <> "" Then CommentArray(j) = True
+                           If Cells(j, 2).Value <> "" Then PullArray(j) = True Else PullArray(j) = False
+                           If Cells(j, 13).Value <> "" Then CommentArray(j) = True Else CommentArray(j) = False
                         Next j
                         Application.Calculation = xlCalculationManual
                         For j = InfoOffset To Dimention
@@ -407,8 +410,7 @@ Else
                                 Cells(j, 14).Value = CopyAlternateDiam
                                 Cells(j, 15).Value = MarkFlag
                                 If CommentArray(j) Then Cells(j, 13).Value = CopyComment
-                                Cells(j, 2).Select
-                                Selection.EntireRow.Hidden = False
+                                Cells(j, 2).EntireRow.Hidden = False
                                 If Cells(j, 10).FormulaR1C1 = "" Then Cells(j, 10).FormulaR1C1 = "=SUM(RC[-1]:R[8]C[-1])"
                                 LogAction ("Import " & CStr(j))
                             Else
@@ -419,16 +421,15 @@ Else
                                     Windows(WorkersBase).Activate
                                     Sheets(DesiredDestination).Select
                                     Cells(j, 13).Value = CopyComment
-                                    LogAction ("ImportComment " & CStr(j))
                                 End If
                             End If
                         Next j
                         Windows(PullBase).Activate
                         Sheets(i).Select
-                        Range(Cells(InfoOffset, 21), Cells(600, 22)).Copy
+                        Range(Columns(21), Columns(22)).Copy
                         Windows(WorkersBase).Activate
                         Sheets(DesiredDestination).Select
-                        Cells(InfoOffset, 21).PasteSpecial
+                        Cells(1, 21).PasteSpecial
                         Application.Calculation = xlCalculationAutomatic
                         If LMMode Then TransferBalance DesiredDestination, Cells(1, 10).Value
                     End If
