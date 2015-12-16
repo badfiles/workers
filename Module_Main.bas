@@ -18,7 +18,7 @@ Public Const FtpStorageName = "10.10.11.1"
 Public Const ExchangeKey = ""
 Public Const ArcKey = ""
 
-Public Const Version = "U-3.4.119"
+Public Const Version = "U-3.4.120"
 
 Public Const AdminMode = True
 'Public Const AdminMode = False
@@ -59,17 +59,17 @@ Dim Start, i, Column As Integer
 On Error GoTo ExceptionControl:
 
 If AdminMode Then
-    Actor = "Admin"
+    Actor = "Admin: "
     Column = 19
 Else
-    Actor = "User"
+    Actor = "User: "
     Column = 21
 End If
 Start = InfoOffset + CInt(Cells(InfoOffset - 1, Column).Value)
 For i = Start To Start + 200
     If Cells(i, Column).Value = "" Then
         Cells(i, Column).Value = DateTime.Date & " " & DateTime.Time
-        Cells(i, Column + 1).Value = Actor & " " & Action
+        Cells(i, Column + 1).Value = Actor & Action
         Cells(InfoOffset - 1, Column).Value = i - InfoOffset + 1
         Exit For
     End If
@@ -203,7 +203,7 @@ Case 6
 Case 7
        If rCase Then MName = "Июля" Else MName = "Июль"
 Case 8
-       If rCase Then MName = "Августя" Else MName = "Август"
+       If rCase Then MName = "Августа" Else MName = "Август"
 Case 9
        If rCase Then MName = "Сентября" Else MName = "Сентябрь"
 Case 10

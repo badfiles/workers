@@ -829,8 +829,8 @@ Else
     AltDiam_Box.Value = ""
     AltDiam_Label.Visible = False
 End If
-Exit Sub
 
+Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Workers/JobName_Box_Change()"
 Exception.Show
@@ -964,6 +964,7 @@ If (NameChooser.Value <> "") And (Not ExtChange) And CDay_Box.MatchFound Then
     Workers.Caption = Workers.RealName_Box.Value & ": " & Workers.Label_FullDate.Caption
     MarkListLine ControlList, CDay_Box.Value
 End If
+
 Exit Sub
 ExceptionControl:
 Exception.Error_Box.Value = "Workers/CDay_Box_Change()"
@@ -1021,7 +1022,7 @@ Private Sub CopyDay_Button_Click()
 Dim Index, i As Integer
 On Error GoTo ExceptionControl:
 ObjectsRecall
-If NameChooser.Value <> "" And MateChooser.Value <> "" Then
+If NameChooser.Value <> "" And MateChooser.Value <> "" And CDay_Box.MatchFound Then
     Sheets(MateChooser.Value).Select
     If Cells(3, 1).Value = "RO" And Not AdminMode Then
         Sheets(NameChooser.Value).Select
@@ -1083,10 +1084,11 @@ If NameChooser.Value <> "" And MateChooser.Value <> "" Then
         SetRandomMark
         Cells(Index, 13).Value = "Копировал " & RealName_Box & " " & DateTime.Date & " " & DateTime.Time
     End If
+    LogAction ("Copy day " & CDay_Box.Value & " from " & NameChooser.Value)
     Application.Calculation = xlCalculationAutomatic
     MakeShitLookGood
     If LMMode Then TransferBalance MateChooser.Value, Cells(1, 10).Value
-Sheets(NameChooser.Value).Select
+    Sheets(NameChooser.Value).Select
 End If
 
 Exit Sub
@@ -1154,7 +1156,12 @@ If NameChooser.Value <> "" Then
     ReadLockedInfo
     Workers.Caption = RealName_Box.Value & ": " & Label_FullDate.Caption
     FillDayList (CDay_Box.Value)
-    If NameChooser.Value <> "Образец" And Not AdminMode Then LogAction ("Login with " & BlockIt.RcvHash)
+    If NameChooser.Value <> "Образец" And Not AdminMode Then
+        Add = ""
+        If BlockIt.RcvHash = PinAdmin Then Add = " (Admin)"
+        If BlockIt.RcvHash = PinSuperV Then Add = " (Supervisor)"
+        LogAction ("Login with " & BlockIt.RcvHash & Add)
+    End If
     If NameChooser.Value = MateChooser.Value Or Not AdminMode Then
         MateChooser.Value = ""
         MateName_Box.Value = ""

@@ -1,4 +1,4 @@
-VERSION 5.00
+﻿VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Setup 
    Caption         =   "Настройки"
    ClientHeight    =   5895
@@ -15,7 +15,6 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim Read As Integer
 Dim Detonate As Integer
-Const InfoOffset = 6
 
 
 ' ##############################################Start WorkersTab surr###############################
@@ -78,7 +77,7 @@ Setup.WorkersTreeHolder.Visible = False
 
 GoTo Endd:
 Start:
-ErrorForm.Show
+Exception.Show
 Endd:
 End Function
 
@@ -140,7 +139,7 @@ If BaseName_Box.Value = NameChooser.Value Then wAdd_Button.Enabled = False
 End Sub
 
 Private Sub CommandButton1_Click()
-FineTuning_Form.Show
+FineTuning_Main.Show
 End Sub
 
 
@@ -501,7 +500,7 @@ For i = 6 To CInt(5 + Total)
     Next
 GoTo Endd:
 Start:
-ErrorForm.Show
+Exception.Show
 Endd:
 
 End Function
@@ -601,7 +600,7 @@ For i = 6 To CInt(5 + Total)
     Next
 GoTo Endd:
 Start:
-ErrorForm.Show
+Exception.Show
 Endd:
 
 End Function
